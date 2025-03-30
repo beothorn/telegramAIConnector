@@ -23,6 +23,11 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
+
+    // https://mvnrepository.com/artifact/org.telegram/telegrambots-meta
+    implementation("org.telegram:telegrambots-longpolling:8.0.0")
+    implementation("org.telegram:telegrambots-client:8.0.0")
+    implementation("com.openai:openai-java:0.40.1")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
