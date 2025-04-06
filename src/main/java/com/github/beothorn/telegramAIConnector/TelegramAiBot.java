@@ -1,10 +1,7 @@
-package org.example;
+package com.github.beothorn.telegramAIConnector;
 
-import com.openai.client.OpenAIClient;
-import com.openai.client.okhttp.OpenAIOkHttpClient;
-import com.openai.models.ChatModel;
-import com.openai.models.chat.completions.ChatCompletion;
-import com.openai.models.chat.completions.ChatCompletionCreateParams;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,14 +11,18 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
-public class EchoBot implements LongPollingSingleThreadUpdateConsumer {
+@Component
+public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
+    private final AiBotService aiBotService;
     private TelegramClient telegramClient;
-    private final String apiToken;
 
-    public EchoBot(String token, String apiToken) {
-        telegramClient = new OkHttpTelegramClient(token);
-        this.apiToken = apiToken;
+    public TelegramAiBot(
+        AiBotService aiBotService,
+        @Value("${telegram.key}") String botToken
+    ) {
+        this.aiBotService = aiBotService;
+        telegramClient = new OkHttpTelegramClient(botToken);
     }
 
     @Override
@@ -39,19 +40,11 @@ public class EchoBot implements LongPollingSingleThreadUpdateConsumer {
 
             String chatId = update.getMessage().getChatId() + "";
 
-            OpenAIClient client = new OpenAIOkHttpClient.Builder()
-                    .apiKey(apiToken)
-//                    .baseUrl("https://generativelanguage.googleapis.com/v1beta") // https://generativelanguage.googleapis.com/v1beta/models
-                    .build();
+            // TODO: append history here
+            String response = aiBotService.prompt(text);
 
             try {
-                ChatCompletionCreateParams params = ChatCompletionCreateParams.builder()
-                        .addUserMessage(text)
-                        .model(ChatModel.GPT_4O_MINI)
-                        .build();
-                ChatCompletion chatCompletion = client.chat().completions().create(params);
-
-                SendMessage sendMessage = new SendMessage(chatId, chatCompletion.choices().get(0).message().content().orElse("Could not get answer"));
+                SendMessage sendMessage = new SendMessage(chatId, response);
                 try {
                     telegramClient.execute(sendMessage);
                 } catch (TelegramApiException e) {
