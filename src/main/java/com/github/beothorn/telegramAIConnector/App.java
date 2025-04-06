@@ -13,6 +13,9 @@ public class App {
     @Value("${telegram.key}")
     private String botToken;
 
+    @Value("${spring.ai.openai.api-key}")
+    private String openAI;
+
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
@@ -30,16 +33,5 @@ public class App {
     @Bean
     public TelegramBotsLongPollingApplication botsApplication(){
         return new TelegramBotsLongPollingApplication();
-    };
-
-//    public static void main(String[] args) {
-//        try {
-//            String botToken = args[0];
-//            String aiToken = args[1];
-//            TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication();
-//            botsApplication.registerBot(botToken, new EchoBot(botToken, aiToken));
-//        } catch (TelegramApiException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    }
 }

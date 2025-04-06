@@ -4,9 +4,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "com.example"
+group = "com.github.beothorn"
 version = "0.0.1-SNAPSHOT"
-//extra["springAiVersion"] = "1.0.0-M6"
 extra["springAiVersion"] = "1.0.0-SNAPSHOT"
 
 java {
@@ -48,4 +47,8 @@ dependencyManagement {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+}
+
+springBoot {
+    mainClass.set("com.github.beothorn.telegramAIConnector.App")
 }

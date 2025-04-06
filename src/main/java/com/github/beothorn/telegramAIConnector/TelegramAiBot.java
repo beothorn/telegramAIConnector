@@ -1,5 +1,7 @@
 package com.github.beothorn.telegramAIConnector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
@@ -16,6 +18,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     private final AiBotService aiBotService;
     private TelegramClient telegramClient;
+
+    Logger logger = LoggerFactory.getLogger(TelegramAiBot.class);
 
     public TelegramAiBot(
         AiBotService aiBotService,
@@ -36,12 +40,14 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         System.out.println("Consume");
         if (update.hasMessage() && update.getMessage().hasText()) {
             String text = update.getMessage().getText();
-            System.out.println(text);
-
             String chatId = update.getMessage().getChatId() + "";
+
+            logger.info("Message from " + chatId + ": " + text);
 
             // TODO: append history here
             String response = aiBotService.prompt(text);
+
+            logger.info("Response to " + chatId + ": " + text);
 
             try {
                 SendMessage sendMessage = new SendMessage(chatId, response);
@@ -51,7 +57,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     e.printStackTrace();
                 }
             }catch (Exception e) {
-                System.out.println(e.getMessage());
+                logger.error(e.getMessage(), e);
                 SendMessage sendMessage = new SendMessage(chatId, e.getMessage());
                 try {
                     telegramClient.execute(sendMessage);
