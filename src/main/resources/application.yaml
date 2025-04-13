@@ -9,7 +9,7 @@ spring:
     mcp:
       client:
         stdio:
-          servers-configuration: "classpath:/mcp-servers-config.json"
+          servers-configuration: ${MCP_SERVERS_FILE:"classpath:/mcp-servers-config.json"}
         toolcallback:
           enabled: true
 telegram:

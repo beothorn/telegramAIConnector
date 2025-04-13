@@ -6,6 +6,7 @@ Required environment vars:
 TELEGRAM_BOT_KEY  
 OPENAI_API_KEY  
 CHAT_PASSWORD  
+MCP_SERVERS_FILE  (example file:/home/you/servers.json)  
 
 Start with
 ```
