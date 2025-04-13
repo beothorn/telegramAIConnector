@@ -1,6 +1,8 @@
 # TelegramAIConnector
 
-Listens to telegram messages, answer using openai with MCPs.  
+Listens to telegram messages, answer using openai with MCPs.
+
+![cute mascot](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/logo.svg)
 
 Required environment vars:  
 TELEGRAM_BOT_KEY  
@@ -23,7 +25,9 @@ Start with
 ```  
 Or set the env vars:  
 ```
-TELEGRAM_BOT_KEY
-OPENAI_API_KEY
-CHAT_PASSWORD
+export TELEGRAM_BOT_KEY=''  
+export OPENAI_API_KEY=''   
+export CHAT_PASSWORD=''  
+
+java -jar build/libs/telegramAIConnector-0.0.1-SNAPSHOT.jar
 ```
