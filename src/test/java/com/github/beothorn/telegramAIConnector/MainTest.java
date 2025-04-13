@@ -5,8 +5,8 @@ package com.github.beothorn.telegramAIConnector;
 
 import org.junit.jupiter.api.Test;
 
-class AppTest {
+class MainTest {
     @Test void appHasAGreeting() {
-        App classUnderTest = new App();
+        Main classUnderTest = new Main();
     }
 }

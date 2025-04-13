@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: telegramAIConnector
+  main:
+    web-application-type: none
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+    mcp:
+      client:
+        stdio:
+          servers-configuration: "classpath:/mcp-servers-config.json"
+        toolcallback:
+          enabled: true
+telegram:
+  key: ${TELEGRAM_BOT_KEY}
+  password: ${CHAT_PASSWORD}
+
+logging:
+  level:
+    io:
+      modelcontextprotocol:
+        client: WARN
+        spec: WARN

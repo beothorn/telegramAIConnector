@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AiBotService {
 
-    Logger logger = LoggerFactory.getLogger(AiBotService.class);
+    private final Logger logger = LoggerFactory.getLogger(AiBotService.class);
 
-    ChatClient chatClient;
+    private final ChatClient chatClient;
 
     public AiBotService(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
         chatClient = chatClientBuilder

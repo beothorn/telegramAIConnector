@@ -50,5 +50,5 @@ tasks.named<Test>("test") {
 }
 
 springBoot {
-    mainClass.set("com.github.beothorn.telegramAIConnector.App")
+    mainClass.set("com.github.beothorn.telegramAIConnector.Main")
 }

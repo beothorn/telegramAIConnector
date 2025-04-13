@@ -8,30 +8,20 @@ import org.springframework.context.annotation.Bean;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 
 @SpringBootApplication
-public class App {
-
-    @Value("${telegram.key}")
-    private String botToken;
-
-    @Value("${spring.ai.openai.api-key}")
-    private String openAI;
+public class Main {
 
     public static void main(String[] args) {
-        SpringApplication.run(App.class, args);
+        SpringApplication.run(Main.class, args);
     }
 
     @Bean
-    public CommandLineRunner startBot(
-        TelegramBotsLongPollingApplication botsApplication,
-        TelegramAiBot telegramAiBot
+    public CommandLineRunner onExecute(
+        final TelegramBotsLongPollingApplication botsApplication,
+        final TelegramAiBot telegramAiBot,
+        final @Value("${telegram.key}") String botToken
     ) {
         return args -> {
             botsApplication.registerBot(botToken, telegramAiBot);
         };
-    }
-
-    @Bean
-    public TelegramBotsLongPollingApplication botsApplication(){
-        return new TelegramBotsLongPollingApplication();
     }
 }
