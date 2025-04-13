@@ -61,7 +61,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
-    private void sendMessage(
+    public void sendMessage(
         final Long chatId,
         final String response
     ) {
@@ -82,10 +82,16 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
         String[] loginWithArgs = loginCommand.split("\\s+", 2);
         if (!loginWithArgs[0].equals("/login")) return;
+        if (loginWithArgs.length != 2){
+            sendMessage(chatId, "Invalid logged in.");
+            return;
+        }
         if (loginWithArgs[1].equals(password)) {
             logger.info("Logged in");
             loggedChats.add(chatId);
             sendMessage(chatId, "You are logged in.");
+        } else {
+            sendMessage(chatId, "You are NOT logged in.");
         }
     }
 
@@ -127,7 +133,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     ) {
         logger.info("Consume text from {}: {}", chatId, text);
         // TODO: append history here
-        String response = aiBotService.prompt(text);
+        String response = aiBotService.prompt(text, new TelegramTools(this, chatId));
 
         logger.info("Response to " + chatId + ": " + text);
         sendMessage(chatId, response);
