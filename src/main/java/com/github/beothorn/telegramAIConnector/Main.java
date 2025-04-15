@@ -17,11 +17,11 @@ public class Main {
     @Bean
     public CommandLineRunner onExecute(
         final TelegramBotsLongPollingApplication botsApplication,
-        final TelegramAiBot telegramAiBot,
+        final TelegramAiBot telegramAIBot,
         final @Value("${telegram.key}") String botToken
     ) {
         return args -> {
-            botsApplication.registerBot(botToken, telegramAiBot);
+            botsApplication.registerBot(botToken, telegramAIBot);
         };
     }
 }
