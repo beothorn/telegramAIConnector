@@ -69,7 +69,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
 
         if (update.hasMessage()) {
-            consumeMessage(chatId, update);
+            try {
+                consumeMessage(chatId, update);
+            } catch (TelegramApiException e) {
+                logger.error("Could not consume message", e);
+            }
         }
     }
 
@@ -88,58 +92,44 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     public void setTyping(
             final Long chatId
-    ) {
+    ) throws TelegramApiException {
         logger.info("Set typing to {}", chatId);
-        try {
-            String chatIdAsString = Long.toString(chatId);
-            SendChatAction typingAction = SendChatAction.builder()
-                    .chatId(chatIdAsString)
-                    .action(ActionType.TYPING.toString())
-                    .build();
+        String chatIdAsString = Long.toString(chatId);
+        SendChatAction typingAction = SendChatAction.builder()
+                .chatId(chatIdAsString)
+                .action(ActionType.TYPING.toString())
+                .build();
 
-            telegramClient.execute(typingAction);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+        telegramClient.execute(typingAction);
     }
 
     public void sendMarkdownMessage(
             final Long chatId,
             final String response
-    ) {
+    ) throws TelegramApiException {
         logger.info("Send markdown message to {}: {}", chatId, response);
-        try {
-            String chatIdAsString = Long.toString(chatId);
-            SendMessage sendMessage = SendMessage.builder()
-                .parseMode(ParseMode.MARKDOWN)
-                .chatId(chatIdAsString)
-                .text(response)
-                .build();
-            telegramClient.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+        String chatIdAsString = Long.toString(chatId);
+        SendMessage sendMessage = SendMessage.builder()
+            .parseMode(ParseMode.MARKDOWN)
+            .chatId(chatIdAsString)
+            .text(response)
+            .build();
+        telegramClient.execute(sendMessage);
     }
 
     public void sendFileWithCaption(
-            final Long chatId,
-            final String filePath,
-            final String caption
-    ) {
+        final Long chatId,
+        final String filePath,
+        final String caption
+    ) throws TelegramApiException {
         logger.info("Sending file to {}: {}", chatId, filePath);
+        SendDocument sendDocument = SendDocument.builder()
+            .chatId(chatId.toString())
+            .document(new InputFile(new File(filePath)))
+            .caption(caption)
+            .build();
 
-        try {
-            SendDocument sendDocument = SendDocument.builder()
-                .chatId(chatId.toString())
-                .document(new InputFile(new File(filePath)))
-                .caption(caption)
-                .build();
-
-            telegramClient.execute(sendDocument);
-
-        } catch (TelegramApiException e) {
-            logger.error("Error sending file", e);
-        }
+        telegramClient.execute(sendDocument);
     }
 
 
@@ -165,7 +155,10 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
-    private void consumeMessage(final Long chatId, final Update update) {
+    private void consumeMessage(
+        final Long chatId,
+        final Update update
+    ) throws TelegramApiException {
         logger.info("Consume message from {}", chatId);
         if (update.getMessage().hasText()) {
             String text = update.getMessage().getText();
@@ -200,9 +193,14 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private void consumeText(
         final Long chatId,
         final String text
-    ) {
+    ) throws TelegramApiException {
         logger.info("Consume text from {}: {}", chatId, text);
-        setTyping(chatId);
+        try {
+            setTyping(chatId);
+        } catch (TelegramApiException e) {
+            // Not important if it fails
+            logger.error("Could not set status to typing");
+        }
 
         messages.addUserMessage(chatId, text);
 

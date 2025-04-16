@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Service
 public class TaskSchedulerService {
 
-    private record ScheduledWithTime(
+    public record ScheduledWithTime(
             String key,
             String dateTime,
             ScheduledFuture<?> task
@@ -41,7 +41,7 @@ public class TaskSchedulerService {
         this.scheduler = taskScheduler;
     }
 
-    public synchronized String schedule(String key, Runnable task, String dateTime) {
+    public synchronized String schedule(String key, Runnable task, Instant dateTime) {
         String uniqueKey = key;
         int i = 0;
         while (tasks.containsKey(uniqueKey)) {
@@ -58,17 +58,22 @@ public class TaskSchedulerService {
                 }
             }
         };
-        ScheduledFuture<?> future = scheduler.schedule(wrappedTask, parseToInstant(dateTime));
-        tasks.put(uniqueKey, new ScheduledWithTime(key, dateTime, future));
+        ScheduledFuture<?> future = scheduler.schedule(wrappedTask, dateTime);
+        tasks.put(uniqueKey, new ScheduledWithTime(key, InstantUtils.formatFromInstant(dateTime), future));
         return uniqueKey;
     }
 
-    public synchronized boolean cancel(String key) {
+    public synchronized Optional<ScheduledWithTime> cancel(String key) {
+        if (!tasks.containsKey(key)) {
+            return Optional.empty();
+        }
+        ScheduledWithTime cancelledTask = tasks.get(key);
         ScheduledFuture<?> future = tasks.remove(key).task;
         if (future != null) {
-            return future.cancel(false); // do not interrupt if already running
+            boolean cancel = future.cancel(false);
+            if (!cancel) return Optional.empty();
         }
-        return false;
+        return Optional.of(cancelledTask);
     }
 
     public synchronized String listScheduledKeys() {
@@ -81,11 +86,5 @@ public class TaskSchedulerService {
             future.task().cancel(false);
         }
         tasks.clear();
-    }
-
-    public static Instant parseToInstant(String dateTimeStr) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
-        LocalDateTime localDateTime = LocalDateTime.parse(dateTimeStr, formatter);
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }
