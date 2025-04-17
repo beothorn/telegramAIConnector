@@ -1,5 +1,7 @@
 package com.github.beothorn.telegramAIConnector;
 
+import com.github.beothorn.telegramAIConnector.tools.SystemTools;
+import com.github.beothorn.telegramAIConnector.tools.TelegramTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +19,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Component
 public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
@@ -199,8 +203,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             logger.error("Could not set status to typing");
         }
 
-        final SystemTools systemTools = new SystemTools(this, aiBotService, taskSchedulerService, chatId);
-        final String response = aiBotService.prompt(chatId, text, systemTools);
+        TelegramTools telegramTools = new TelegramTools(this, aiBotService, taskSchedulerService, chatId);
+        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
 
         logger.info("Response to " + chatId + ": " + text);
         sendMarkdownMessage(chatId, response);

@@ -22,9 +22,19 @@ public class AiBotService {
     public AiBotService(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
         chatClient = chatClientBuilder
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(new InMemoryChatMemory())
+                        new MessageChatMemoryAdvisor(new InMemoryChatMemory()),
+                        new SimpleLoggerAdvisor()
                 )
                 .defaultTools(tools)
+                .defaultSystem("""
+                        You are telegramAiConnector, a bot that answers message over telegram and 
+                        can use many tools to perform tasks, such as setting reminders, accessing services and 
+                        performing computations. You answer in a direct manner, using markdown. You are resourceful 
+                        and make full use of the tools. 
+                        Refrain from asking if the user needs more assistance. It is a chat, if the user needs more 
+                        they will tell. 
+                        Be direct and follow the user instructions say the necessary.
+                        """)
                 .build();
     }
 
