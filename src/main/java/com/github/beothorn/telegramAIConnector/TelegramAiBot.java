@@ -24,7 +24,6 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     private final AiBotService aiBotService;
     private final TelegramClient telegramClient;
-    private final Messages messages;
     private final TaskSchedulerService taskSchedulerService;
     private final String password;
 
@@ -34,7 +33,6 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     public TelegramAiBot(
         final AiBotService aiBotService,
-        final Messages messages,
         final TaskSchedulerService taskSchedulerService,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegram.password}") final String password
@@ -43,7 +41,6 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         telegramClient = new OkHttpTelegramClient(botToken);
         this.password = password;
         this.taskSchedulerService = taskSchedulerService;
-        this.messages = messages;
     }
 
     @Override
@@ -202,13 +199,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             logger.error("Could not set status to typing");
         }
 
-        messages.addUserMessage(chatId, text);
-
-        final List<PersistedMessage> persistedMessages = messages.getMessages(chatId);
         final SystemTools systemTools = new SystemTools(this, aiBotService, taskSchedulerService, chatId);
-        final String response = aiBotService.prompt(persistedMessages, systemTools);
-
-        messages.addAssistantMessage(chatId, response);
+        final String response = aiBotService.prompt(chatId, text, systemTools);
 
         logger.info("Response to " + chatId + ": " + text);
         sendMarkdownMessage(chatId, response);

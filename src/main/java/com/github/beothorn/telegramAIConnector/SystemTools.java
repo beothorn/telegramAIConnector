@@ -114,8 +114,7 @@ class SystemTools {
             @ToolParam(description = "The amount of time to wait before sending the command") int seconds
     ) {
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-            List<PersistedMessage> messages = List.of(new PersistedMessage(MessageType.USER.toString(), command));
-            String response = aiBotService.prompt(messages, this);
+            String response = aiBotService.prompt(chatId ,command, this);
             try {
                 bot.sendMarkdownMessage(chatId, response);
             } catch (TelegramApiException e) {

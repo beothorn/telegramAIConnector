@@ -3,6 +3,8 @@ package com.github.beothorn.telegramAIConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -19,30 +21,25 @@ public class AiBotService {
 
     public AiBotService(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
         chatClient = chatClientBuilder
+                .defaultAdvisors(
+                        new MessageChatMemoryAdvisor(new InMemoryChatMemory())
+                )
                 .defaultTools(tools)
                 .build();
     }
 
     public String prompt(
-        final List<PersistedMessage> messages,
+        final Long chatId,
+        final String message,
         final Object... toolObjects
     ) {
         try {
-            List<Message> promptMessages = messages.stream().map(m -> {
-                if (m.messageType().equals(MessageType.USER.toString())) {
-                    return new UserMessage(m.message());
-                }
-                if (m.messageType().equals(MessageType.SYSTEM.toString())) {
-                    return new SystemMessage(m.message());
-                }
-                return new AssistantMessage(m.message());
-            }).map(m -> (Message) m).toList();
-
             logger.info("Got prompts");
-            Prompt prompt = new Prompt(promptMessages);
 
             String answer = chatClient
-                    .prompt(prompt)
+                    .prompt(message)
+                    .advisors(advisor -> advisor.param("chat_memory_conversation_id", Long.toString(chatId))
+                            .param("chat_memory_response_size", 100))
                     .tools(toolObjects)
                     .call()
                     .content();
