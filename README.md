@@ -9,7 +9,7 @@ Listens to telegram messages, answer using openai with MCPs.
 Create a bot with telegram [BotFather](https://telegram.me/BotFather) and copy the bot token.  
 It only supports open AI for now. You will need an [openAi key](https://platform.openai.com/).  
 
-Create an mcp server config file on your disk. You can see [an example here](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/mcp-servers-config.json)
+Create a mcp server config file on your disk. You can see [an example here](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/mcp-servers-config.json)
 
 Copy the application [configuration properties](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/application.yaml) and replace the values.  
 
