@@ -4,30 +4,25 @@ Listens to telegram messages, answer using openai with MCPs.
 
 ![cute mascot](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/logo.svg)
 
-Required environment vars:  
-TELEGRAM_BOT_KEY  
-OPENAI_API_KEY  
-CHAT_PASSWORD  
-MCP_SERVERS_FILE  (example file:/home/you/servers.json)  
+# Getting started
 
-Start with
+Create a bot with telegram [BotFather](https://telegram.me/BotFather) and copy the bot token.  
+It only supports open AI for now. You will need an [openAi key](https://platform.openai.com/).  
+
+Create an mcp server config file on your disk. You can see [an example here](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/mcp-servers-config.json)
+
+Copy the application [configuration properties](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/application.yaml) and replace the values.  
+
+Download the [latest release](https://github.com/beothorn/telegramAIConnector/releases/download/0.0.1-SNAPSHOT/telegramAIConnector-0.0.1-SNAPSHOT.jar) and java 21+  
+
+Run the application with:  
+```
+java -jar telegramAIConnector.jar --spring.config.location=file:/path/to/application.yaml
+```
+
+On telegram, send the login command to the bot:  
 ```
 /login YOURPASSWORD
-``
-
-## Build and run
-
 ```
-./gradlew build bootJar && java -jar build/libs/telegramAIConnector-0.0.1-SNAPSHOT.jar \
-'--spring.ai.openai.api-key=YOUR_OPENAI_KEY' \
-'--telegram.key=YOUR_TELEGRAM_KEY' \
-'--telegram.password=YOUR_PASSWORD_TO_USE_THE_BOT'
-```  
-Or set the env vars:  
-```
-export TELEGRAM_BOT_KEY=''  
-export OPENAI_API_KEY=''   
-export CHAT_PASSWORD=''  
 
-java -jar build/libs/telegramAIConnector-0.0.1-SNAPSHOT.jar
-```
+Have fun!  

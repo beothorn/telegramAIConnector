@@ -5,16 +5,16 @@ spring:
     web-application-type: none
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY}
+      api-key: ${OPENAI_API_KEY} # Replace with the open ai api token
     mcp:
       client:
         stdio:
-          servers-configuration: ${MCP_SERVERS_FILE:"classpath:/mcp-servers-config.json"}
+          servers-configuration: ${MCP_SERVERS_FILE:"classpath:/mcp-servers-config.json"} # replace with file:PathToYourMcp.json instead
         toolcallback:
           enabled: true
 telegram:
-  key: ${TELEGRAM_BOT_KEY}
-  password: ${CHAT_PASSWORD}
+  key: ${TELEGRAM_BOT_KEY} # Replace with the bot key generated with BotFather
+  password: ${CHAT_PASSWORD} # Replace with a password. To login send the message on instagram /login CHAT_PASSWORD
 
 logging:
   level:

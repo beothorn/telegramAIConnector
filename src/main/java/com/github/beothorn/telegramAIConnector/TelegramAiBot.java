@@ -64,7 +64,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             consumeLogin(chatId, text);
             if (!loggedChats.contains(chatId)) {
                 logger.info("Bad login attempt {}: {}", chatId, text);
-                sendMessage(chatId, "You are talking to TelegramAIConnector.");
+                sendMessage(chatId, "You are talking to TelegramAIConnector. check instructions at https://github.com/beothorn/telegramAIConnector");
             }
             return;
         }
