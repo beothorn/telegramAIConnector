@@ -9,16 +9,23 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +37,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final TelegramClient telegramClient;
     private final TaskSchedulerService taskSchedulerService;
     private final String password;
+    private final String uploadFolder;
 
     private final Set<Long> loggedChats = new HashSet<>();
 
@@ -39,12 +47,14 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final AiBotService aiBotService,
         final TaskSchedulerService taskSchedulerService,
         @Value("${telegram.key}") final String botToken,
-        @Value("${telegram.password}") final String password
+        @Value("${telegram.password}") final String password,
+        @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.aiBotService = aiBotService;
         telegramClient = new OkHttpTelegramClient(botToken);
         this.password = password;
         this.taskSchedulerService = taskSchedulerService;
+        this.uploadFolder = uploadFolder;
     }
 
     @Override
@@ -74,6 +84,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                 consumeMessage(chatId, update);
             } catch (TelegramApiException e) {
                 logger.error("Could not consume message", e);
+                sendMessage(chatId, "Something went wrong '" + e.getMessage() + "'" );
             }
         }
     }
@@ -133,8 +144,6 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         telegramClient.execute(sendDocument);
     }
 
-
-
     private void consumeLogin(
         final Long chatId,
         final String loginCommand
@@ -177,6 +186,27 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                 consumeText(chatId, text);
             }
         }
+        if (update.getMessage().getDocument() != null) {
+            Document document = update.getMessage().getDocument();
+            String fileId = document.getFileId();
+            String fileName = document.getFileName();
+            GetFile getFileMethod = new GetFile(fileId);
+            org.telegram.telegrambots.meta.api.objects.File telegramFile = telegramClient.execute(getFileMethod);
+            File downloadedFile = telegramClient.downloadFile(telegramFile);
+            logger.info("Downloaded file {} to {}", fileName, downloadedFile.getAbsolutePath());
+            Path outputDir = Paths.get(uploadFolder);
+            try {
+                Files.createDirectories(outputDir);
+                Path destinationPath = outputDir.resolve(fileName);
+                Files.copy(downloadedFile.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
+                sendMessage(chatId, "File saved to: " + destinationPath);
+                consumeFile(chatId, destinationPath);
+            } catch (IOException e) {
+                logger.error("Error saving file", e);
+                sendMessage(chatId, "Error saving file: " + e.getMessage());
+            }
+
+        }
     }
 
     private void consumeCommand(
@@ -196,17 +226,33 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final String text
     ) throws TelegramApiException {
         logger.info("Consume text from {}: {}", chatId, text);
+        sendTypingCommand(chatId);
+
+        TelegramTools telegramTools = new TelegramTools(this, aiBotService, taskSchedulerService, chatId, uploadFolder);
+        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+
+        logger.info("Response to " + chatId + ": " + text);
+        sendMarkdownMessage(chatId, response);
+    }
+
+    private void consumeFile(
+        final Long chatId,
+        final Path uploadedFile
+    ) throws TelegramApiException {
+        String uploadedFileString = uploadedFile.toString();
+        logger.info("Consume file from {}: {}", chatId, uploadedFileString);
+        sendTypingCommand(chatId);
+        String text = "File saved to '" + uploadedFileString + "'.";
+        sendMessage(chatId, text);
+        logger.info("Response to " + chatId + ": " + text);
+    }
+
+    private void sendTypingCommand(Long chatId) {
         try {
             setTyping(chatId);
         } catch (TelegramApiException e) {
             // Not important if it fails
             logger.error("Could not set status to typing");
         }
-
-        TelegramTools telegramTools = new TelegramTools(this, aiBotService, taskSchedulerService, chatId);
-        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
-
-        logger.info("Response to " + chatId + ": " + text);
-        sendMarkdownMessage(chatId, response);
     }
 }

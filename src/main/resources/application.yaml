@@ -16,6 +16,9 @@ telegram:
   key: ${TELEGRAM_BOT_KEY} # Replace with the bot key generated with BotFather
   password: ${CHAT_PASSWORD} # Replace with a password. To login send the message on instagram /login CHAT_PASSWORD
 
+telegramIAConnector:
+  uploadFolder: ${TELEGRAM_UPLOAD_FOLDER:~/.telegramAIConnector} # ~/.telegramAIConnector/
+
 logging:
   level:
     io:

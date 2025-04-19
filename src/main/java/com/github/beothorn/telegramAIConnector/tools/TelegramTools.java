@@ -16,17 +16,20 @@ public class TelegramTools {
     private final Long chatId;
     private final AiBotService aiBotService;
     private final TaskSchedulerService taskSchedulerService;
+    private final String uploadFolder;
 
     public TelegramTools(
             final TelegramAiBot bot,
             final AiBotService aiBotService,
             final TaskSchedulerService taskSchedulerService,
-            final Long chatId
+            final Long chatId,
+            final String uploadFolder
     ) {
         this.bot = bot;
         this.aiBotService = aiBotService;
         this.taskSchedulerService = taskSchedulerService;
         this.chatId = chatId;
+        this.uploadFolder = uploadFolder;
     }
 
     @Tool(description = "Schedule a reminder message to be sent on a date set in the format 'yyyy.MM.dd HH:mm'")
@@ -121,5 +124,10 @@ public class TelegramTools {
         } catch (TelegramApiException e) {
             return "Could not send '" + filePath + "' got error: '" + e.getMessage() + "'.";
         }
+    }
+
+    @Tool(description = "Get the folder where the user uploads their files")
+    public String getUploadFolder() {
+        return uploadFolder;
     }
 }
