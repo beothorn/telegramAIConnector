@@ -13,7 +13,7 @@ Create a mcp server config file on your disk. You can see [an example here](http
 
 Copy the application [configuration properties](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/application.yaml) and replace the values.  
 
-Download the [latest release](https://github.com/beothorn/telegramAIConnector/releases/download/0.0.1-SNAPSHOT/telegramAIConnector-0.0.1-SNAPSHOT.jar) and java 21+  
+Download the [latest release](https://github.com/beothorn/telegramAIConnector/releases/download/1.0.0/telegramAIConnector-1.0.0.jar) and java 21+  
 
 Run the application with:  
 ```
