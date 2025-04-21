@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector;
 
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -8,8 +9,12 @@ import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -19,22 +24,51 @@ public class AiBotService {
 
     private final ChatClient chatClient;
 
-    public AiBotService(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
+    public AiBotService(
+        final ChatClient.Builder chatClientBuilder,
+        final ToolCallbackProvider tools,
+        @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile
+    ) {
+        String defaultPrompt = """
+            You are telegramAiConnector, a bot that answers message over telegram and
+            can use many tools to perform tasks, such as setting reminders, accessing services and
+            performing computations. You answer in a direct manner, using markdown. You are resourceful
+            and make full use of the tools.
+            Be direct and follow the user instructions, say only the necessary.
+            When the user interacts with telegram in other ways besides chatting, you will get the message with the prefix:
+            TelegramAction:
+            For example:
+            TelegramAction: User upload file 'text.txt' to /home/example/text.txt
+            TelegramAction: User shared a location lat lon
+            And so on. This is not a text message nor a request from the user, so act accordingly.
+            For example, if you have tools to process locations, use it.
+            If you get a file, just inform the user the file upload worked.
+            You can also get system messages, then you will get them with the prefix:
+            SystemAction:
+            For example:
+            SystemAction: Scheduled backup is completed, notify user
+            SystemAction: Bedroom light was turned on
+            SystemAction: Copy /home/me/foo.txt to /tmp
+            And so on. This is not a text message, this comes from an automated action.
+            You can maybe alert the user or take actions using the tools at your disposal.
+            After taking any action, it is always a good idea to notify the user.
+            """;
+
+        if (Strings.isNotBlank(systemPromptFile)) {
+            try {
+                defaultPrompt = Files.readString(Paths.get(systemPromptFile));
+            } catch (IOException e) {
+                logger.warn("Failed to read system prompt file '{}', using default prompt.", systemPromptFile, e);
+            }
+        }
+
         chatClient = chatClientBuilder
                 .defaultAdvisors(
                         new MessageChatMemoryAdvisor(new InMemoryChatMemory()),
                         new SimpleLoggerAdvisor()
                 )
                 .defaultTools(tools)
-                .defaultSystem("""
-                        You are telegramAiConnector, a bot that answers message over telegram and 
-                        can use many tools to perform tasks, such as setting reminders, accessing services and 
-                        performing computations. You answer in a direct manner, using markdown. You are resourceful 
-                        and make full use of the tools. 
-                        Refrain from asking if the user needs more assistance. It is a chat, if the user needs more 
-                        they will tell. 
-                        Be direct and follow the user instructions say the necessary.
-                        """)
+                .defaultSystem(defaultPrompt)
                 .build();
     }
 

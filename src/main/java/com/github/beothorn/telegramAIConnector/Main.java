@@ -3,6 +3,7 @@ package com.github.beothorn.telegramAIConnector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
@@ -11,7 +12,9 @@ import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 public class Main {
 
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        SpringApplication app = new SpringApplication(Main.class);
+        app.setWebApplicationType(WebApplicationType.SERVLET);
+        app.run(args);
     }
 
     @Bean

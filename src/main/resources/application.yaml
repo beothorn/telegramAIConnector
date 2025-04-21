@@ -1,8 +1,11 @@
+server:
+  port: 9996
+
 spring:
   application:
     name: telegramAIConnector
   main:
-    web-application-type: none
+    web-application-type: servlet # none or servlet if you want the http endpoint
   ai:
     openai:
       api-key: ${OPENAI_API_KEY} # Replace with the open ai api token
@@ -17,7 +20,9 @@ telegram:
   password: ${CHAT_PASSWORD} # Replace with a password. To login send the message on instagram /login CHAT_PASSWORD
 
 telegramIAConnector:
-  uploadFolder: ${TELEGRAM_UPLOAD_FOLDER:~/.telegramAIConnector} # ~/.telegramAIConnector/
+  uploadFolder: ${TELEGRAM_UPLOAD_FOLDER} # Use the absolute path, ex: /home/me/.telegramAIConnector/
+  systemPromptFile: ${TELEGRAM_SYSTEM_PROMPT_FILE:} # Optional, file with system prompt
+  adminChatId: ${TELEGRAM_ADMIN_CHAT_ID:} # Required on server mode, chat to send system messages
 
 logging:
   level:
