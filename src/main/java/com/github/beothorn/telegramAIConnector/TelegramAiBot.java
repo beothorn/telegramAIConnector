@@ -67,7 +67,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     @Override
     public void consume(final Update update) {
-        Long chatId = update.getMessage().getChatId();
+        final Long chatId = update.getMessage().getChatId();
 
         // If not logged in, only respond to login attempt
         if (!loggedChats.contains(chatId)) {
@@ -106,7 +106,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     }
 
     public void setTyping(
-            final Long chatId
+        final Long chatId
     ) throws TelegramApiException {
         logger.info("Set typing to {}", chatId);
         final String chatIdAsString = Long.toString(chatId);
@@ -119,8 +119,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     }
 
     public void sendMarkdownMessage(
-            final Long chatId,
-            final String response
+        final Long chatId,
+        final String response
     ) throws TelegramApiException {
         logger.info("Send markdown message to {}: {}", chatId, response);
         final String chatIdAsString = Long.toString(chatId);
@@ -293,7 +293,10 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
-    private void downloadAndConsumeFile(Long chatId, String fileId) throws TelegramApiException {
+    private void downloadAndConsumeFile(
+        final Long chatId,
+        final String fileId
+    ) throws TelegramApiException {
         downloadAndConsumeFile(chatId, fileId, null);
     }
 
@@ -378,7 +381,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         sendMarkdownMessage(chatId, response);
     }
 
-    private void sendTypingCommand(Long chatId) {
+    private void sendTypingCommand(
+        final Long chatId
+    ) {
         try {
             setTyping(chatId);
         } catch (TelegramApiException e) {
@@ -388,7 +393,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     }
 
     @NotNull
-    private TelegramTools getTelegramTools(final Long chatId) {
+    private TelegramTools getTelegramTools(
+            final Long chatId
+    ) {
         return new TelegramTools(this, aiBotService, taskSchedulerService, chatId, uploadFolder);
     }
 }
