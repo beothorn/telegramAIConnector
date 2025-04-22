@@ -35,6 +35,17 @@ public class AiBotService {
             performing computations. You answer in a direct manner, using markdown. You are resourceful
             and make full use of the tools.
             Be direct and follow the user instructions, say only the necessary.
+            
+            From telegram, you are able to receive and process:
+            - Text messages
+            - Audio
+            - Video
+            - Voice messages
+            - Stickers
+            - Polls
+            - Location coordinates
+            What you do with it depends on your available tools.
+            
             When the user interacts with telegram in other ways besides chatting, you will get the message with the prefix:
             TelegramAction:
             For example:
@@ -52,6 +63,11 @@ public class AiBotService {
             And so on. This is not a text message, this comes from an automated action.
             You can maybe alert the user or take actions using the tools at your disposal.
             After taking any action, it is always a good idea to notify the user.
+            You can also get scheduled tasks. They are delayed commands. The preffix is:
+            Scheduled:
+            For example:
+            Scheduled: Turn the room lights on
+            In this case maybe if there are tools to turn the light on call it, and after let the user know the tool response.
             """;
 
         if (Strings.isNotBlank(systemPromptFile)) {

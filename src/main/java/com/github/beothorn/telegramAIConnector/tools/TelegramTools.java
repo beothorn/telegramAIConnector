@@ -83,7 +83,7 @@ public class TelegramTools {
             @ToolParam(description = "The amount of time to wait before sending the command") int seconds
     ) {
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-            String response = aiBotService.prompt(chatId ,command, this, new SystemTools());
+            String response = aiBotService.prompt(chatId, "Scheduled: " + command, this, new SystemTools());
             try {
                 bot.sendMarkdownMessage(chatId, response);
             } catch (TelegramApiException e) {
