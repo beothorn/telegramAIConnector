@@ -1,10 +1,8 @@
 package com.github.beothorn.telegramAIConnector.tools;
 
 import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.time.Duration;
@@ -62,21 +60,5 @@ public class SystemTools {
         );
     }
 
-    @Tool(description = "Returns the list of files and directories separate by line breaks, given a path")
-    public String ls(
-            @ToolParam(description = "The directory to list") String path
-    ) {
-        File dir = new File(path);
-        if (!dir.exists() || !dir.isDirectory()) {
-            return "Invalid directory: " + path;
-        }
-        StringBuilder result = new StringBuilder();
-        File[] files = dir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                result.append(file.getName()).append("\n");
-            }
-        }
-        return result.toString().trim();
-    }
+
 }

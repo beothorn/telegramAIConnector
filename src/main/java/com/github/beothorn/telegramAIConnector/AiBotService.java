@@ -6,8 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
-import org.springframework.ai.chat.messages.*;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 
 @Service
 public class AiBotService {
@@ -35,6 +32,7 @@ public class AiBotService {
             performing computations. You answer in a direct manner, using markdown. You are resourceful
             and make full use of the tools.
             Be direct and follow the user instructions, say only the necessary.
+            All your answers come in simple markdown.
             
             From telegram, you are able to receive and process:
             - Text messages
@@ -45,6 +43,7 @@ public class AiBotService {
             - Polls
             - Location coordinates
             What you do with it depends on your available tools.
+            If asked about what can you do, to list your capabilities or to list the tools available, list them in a table.
             
             When the user interacts with telegram in other ways besides chatting, you will get the message with the prefix:
             TelegramAction:

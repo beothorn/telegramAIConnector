@@ -101,6 +101,17 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
+            if (e.getMessage().contains("message is too long")) {
+                sendMessage(chatId, "Response was too long and got rejected by telegram. I will send it as a file");
+                try {
+                    Path telegram = Files.createTempFile("telegram", "");
+                    Files.writeString(telegram, response);
+                    sendFileWithCaption(chatId, telegram.toAbsolutePath().toString(), "");
+                } catch (IOException | TelegramApiException ex) {
+                    sendMessage(chatId, "Error creating file.");
+                    return;
+                }
+            }
             e.printStackTrace();
         }
     }
@@ -124,12 +135,25 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     ) throws TelegramApiException {
         logger.info("Send markdown message to {}: {}", chatId, response);
         final String chatIdAsString = Long.toString(chatId);
+        final String fixForTelegramMarkdown = response
+//                .replace("-", "\\-")
+//                .replace(".", "\\.")
+//                .replace("!", "\\!")
+//                .replace("(", "\\(")
+//                .replace(")", "\\)")
+                ;
         final SendMessage sendMessage = SendMessage.builder()
             .parseMode(ParseMode.MARKDOWN)
             .chatId(chatIdAsString)
-            .text(response)
+            .text(fixForTelegramMarkdown)
             .build();
-        telegramClient.execute(sendMessage);
+        try {
+            telegramClient.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            // maybe it is a bad formatted markdown
+            logger.warn("Could not send markdown message '{}'", fixForTelegramMarkdown, e);
+            sendMessage(chatId, response);
+        }
     }
 
     public void sendFileWithCaption(
@@ -203,7 +227,12 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     throw new IllegalArgumentException("Bad command " + text);
                 }
             } else {
-                consumeText(chatId, text);
+                try {
+                    consumeText(chatId, text);
+                } catch (TelegramApiException e) {
+                    logger.error("Could not consume text '{}'", text, e);
+                    throw e;
+                }
             }
         }
 
@@ -311,7 +340,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
         final File downloadedFile = telegramClient.downloadFile(telegramFile);
         logger.info("Downloaded file {} to {}", fileName, downloadedFile.getAbsolutePath());
-        final Path outputDir = Paths.get(uploadFolder);
+        final Path outputDir = Paths.get(uploadFolder + "/" + chatId);
         try {
             Files.createDirectories(outputDir);
             final Path destinationPath = outputDir.resolve(fileName);

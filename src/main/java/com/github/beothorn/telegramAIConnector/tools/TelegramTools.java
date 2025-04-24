@@ -1,11 +1,17 @@
 package com.github.beothorn.telegramAIConnector.tools;
 
-import com.github.beothorn.telegramAIConnector.*;
+import com.github.beothorn.telegramAIConnector.AiBotService;
+import com.github.beothorn.telegramAIConnector.InstantUtils;
+import com.github.beothorn.telegramAIConnector.TaskSchedulerService;
+import com.github.beothorn.telegramAIConnector.TelegramAiBot;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -29,13 +35,13 @@ public class TelegramTools {
         this.aiBotService = aiBotService;
         this.taskSchedulerService = taskSchedulerService;
         this.chatId = chatId;
-        this.uploadFolder = uploadFolder;
+        this.uploadFolder = uploadFolder + "/" + chatId;
     }
 
     @Tool(description = "Schedule a reminder message to be sent on a date set in the format 'yyyy.MM.dd HH:mm'")
     public String sendReminder(
-            @ToolParam(description = "The reminder message to be sent") String message,
-            @ToolParam(description = "The time to trigger the reminder in the format 'yyyy.MM.dd HH:mm'") String dateTime
+        @ToolParam(description = "The reminder message to be sent") String message,
+        @ToolParam(description = "The time to trigger the reminder in the format 'yyyy.MM.dd HH:mm'") String dateTime
     ) {
 
         // test if time is in the past
@@ -61,7 +67,7 @@ public class TelegramTools {
 
     @Tool(description = "Delete a reminder")
     public String deleteReminder(
-            @ToolParam(description = "The reminder message to be deleted") String message
+        @ToolParam(description = "The reminder message to be deleted") String message
     ) {
         return taskSchedulerService.cancel(message).map(task ->
                 "The reminder with key '" + task.key() + "' at '" + task.dateTime() +
@@ -72,15 +78,15 @@ public class TelegramTools {
 
     @Tool(description = "List the scheduled reminders")
     public String listReminders(
-            @ToolParam(description = "The reminder message to be deleted") String message
+        @ToolParam(description = "The reminder message to be deleted") String message
     ) {
         return taskSchedulerService.listScheduledKeys();
     }
 
     @Tool(description = "Schedule a command to be sent to the ai assistant after an interval in seconds.")
     public void sendCommandInSeconds(
-            @ToolParam(description = "The command to be sent to the ai assistant.") String command,
-            @ToolParam(description = "The amount of time to wait before sending the command") int seconds
+        @ToolParam(description = "The command to be sent to the ai assistant.") String command,
+        @ToolParam(description = "The amount of time to wait before sending the command") int seconds
     ) {
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
             String response = aiBotService.prompt(chatId, "Scheduled: " + command, this, new SystemTools());
@@ -95,23 +101,23 @@ public class TelegramTools {
 
     @Tool(description = "Send a markdown message to the user asynchronously through telegram")
     public String sendMessage(
-            @ToolParam(description = "The message in markdown format") final String message
+        @ToolParam(description = "The message in markdown format") final String message
     ) {
         try {
             bot.sendMarkdownMessage(chatId, message);
         } catch (TelegramApiException e) {
 
-            return "Could not send messag, got error: '" + e.getMessage() + "'.";
+            return "Could not send message, got error: '" + e.getMessage() + "'.";
         }
         return "Sent message successfully";
     }
 
-    @Tool(description = "Send a file to the user with a given caption")
+    @Tool(description = "Send a file from the Telegram upload folder to the user with a given caption")
     public String sendFile(
-            @ToolParam(description = "The absolute file path") final String filePath,
-            @ToolParam(description = "The caption to show on chat below the file") final String caption
+        @ToolParam(description = "The file name") final String fileName,
+        @ToolParam(description = "The caption to show on chat below the file") final String caption
     ) {
-        File file = new File(filePath);
+        File file = new File(uploadFolder + "/" + fileName);
         if (!file.exists()) {
             return "'" + file + "' does not exist.";
         }
@@ -119,15 +125,60 @@ public class TelegramTools {
             return "'" + file + "' exists but is not a file.";
         }
         try {
-            bot.sendFileWithCaption(chatId, filePath, caption);
-            return "File '" + filePath + "' sent successfully.";
+            bot.sendFileWithCaption(chatId, file.getAbsolutePath(), caption);
+            return "File '" + fileName + "' sent successfully.";
         } catch (TelegramApiException e) {
-            return "Could not send '" + filePath + "' got error: '" + e.getMessage() + "'.";
+            return "Could not send '" + fileName + "' got error: '" + e.getMessage() + "'.";
         }
     }
 
-    @Tool(description = "Get the folder where the user uploads their files")
-    public String getUploadFolder() {
-        return uploadFolder;
+    @Tool(description = "Returns the list of files inside Telegram upload folder")
+    public String listUploadedFiles() {
+        if (uploadFolder == null) {
+            return "Invalid list files.";
+        }
+        File dir = new File(uploadFolder);
+        if (!dir.exists() || !dir.isDirectory()) {
+            return "No file was uploaded yet.";
+        }
+        StringBuilder result = new StringBuilder();
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return "There are no files on Telegram upload folder.";
+        }
+        if (files.length == 0) {
+            return "There are no files on Telegram upload folder.";
+        }
+        for (File file : files) {
+            result.append(file.getName()).append("\n");
+        }
+        return "The files are:\n" + result;
+    }
+
+    @Tool(description = "Deletes a file inside Telegram upload folder")
+    public String deleteFile(
+            @ToolParam(description = "The file name to delete. Make sure it is the right file.") final String fileName
+    ) {
+        final File toBeDeleted = new File(uploadFolder + "/" + fileName);
+        if (!toBeDeleted.exists() || toBeDeleted.isDirectory()) {
+            return "This file does not exist.";
+        }
+        boolean deleted = toBeDeleted.delete();
+        if (deleted) {
+            return "The file '" + fileName + "' was deleted.";
+        } else {
+            return "The file '" + fileName + "' was not deleted.";
+        }
+    }
+
+    @Tool(description = "Reads the text contents of a file inside Telegram upload folder")
+    public String readFile(
+            @ToolParam(description = "The file name to be read.") final String fileName
+    ) {
+        try {
+            return Files.readString(Paths.get(uploadFolder + "/" + fileName));
+        } catch (IOException e) {
+            return "Failed to read file '" + fileName + "' because " + e.getMessage() + ".";
+        }
     }
 }
