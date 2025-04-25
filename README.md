@@ -10,7 +10,7 @@ Create a bot with telegram [BotFather](https://telegram.me/BotFather) and copy t
 It only supports open AI for now. You will need an [openAi key](https://platform.openai.com/).  
 Get java 21+
 
-Download the [instalation zip](https://github.com/beothorn/telegramAIConnector/releases/download/2.0.0/telegramAIConnector.zip)   
+Download the [instalation zip](https://github.com/beothorn/telegramAIConnector/releases/download/2.0.0/telegramAIConnector_2_0_0.zip)   
 , extract it and fill the values on `application.yml` and `mcp-servers-config.json`.  
 Then just execute the jar with `java -jar telegramAIConnector.jar`.
 
