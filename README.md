@@ -8,17 +8,11 @@ Listens to telegram messages, answer using openai with MCPs.
 
 Create a bot with telegram [BotFather](https://telegram.me/BotFather) and copy the bot token.  
 It only supports open AI for now. You will need an [openAi key](https://platform.openai.com/).  
+Get java 21+
 
-Create a mcp server config file on your disk. You can see [an example here](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/mcp-servers-config.json)
-
-Copy the application [configuration properties](https://raw.githubusercontent.com/beothorn/telegramAIConnector/refs/heads/main/src/main/resources/application.yaml) and replace the values.  
-
-Download the [latest release](https://github.com/beothorn/telegramAIConnector/releases/download/1.0.0/telegramAIConnector-1.0.0.jar) and java 21+  
-
-Run the application with:  
-```
-java -jar telegramAIConnector.jar --spring.config.location=file:/path/to/application.yaml
-```
+Download the [instalation zip](https://github.com/beothorn/telegramAIConnector/releases/download/2.0.0/telegramAIConnector.zip)   
+, extract it and fill the values on `application.yml` and `mcp-servers-config.json`.  
+Then just execute the jar with `java -jar telegramAIConnector.jar`.
 
 On telegram, send the login command to the bot:  
 ```
@@ -26,3 +20,10 @@ On telegram, send the login command to the bot:
 ```
 
 Have fun!  
+
+# Features
+
+- Schedule reminders and commands
+- Get messages from a http endpoint (optional)
+- Upload and download files
+- Get the current time
