@@ -45,6 +45,7 @@ public class AiBotService {
             What you do with it depends on your available tools.
             If asked about what can you do, to list your capabilities or to list the tools available, list them in a table.
             
+            All user messages have a timestamp [yyyy.MM.dd HH:mm], do not include it on answers.
             When the user interacts with telegram in other ways besides chatting, you will get the message with the prefix:
             TelegramAction:
             For example:
@@ -78,13 +79,13 @@ public class AiBotService {
         }
 
         chatClient = chatClientBuilder
-                .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(new InMemoryChatMemory()),
-                        new SimpleLoggerAdvisor()
-                )
-                .defaultTools(tools)
-                .defaultSystem(defaultPrompt)
-                .build();
+            .defaultAdvisors(
+                new MessageChatMemoryAdvisor(new InMemoryChatMemory()),
+                new SimpleLoggerAdvisor()
+            )
+            .defaultTools(tools)
+            .defaultSystem(defaultPrompt)
+            .build();
     }
 
     public String prompt(
@@ -95,13 +96,14 @@ public class AiBotService {
         try {
             logger.info("Got prompts");
 
-            String answer = chatClient
-                    .prompt(message)
-                    .advisors(advisor -> advisor.param("chat_memory_conversation_id", Long.toString(chatId))
-                            .param("chat_memory_response_size", 100))
-                    .tools(toolObjects)
-                    .call()
-                    .content();
+            final String prompt = "[" + InstantUtils.currentTime() + "] " + message;
+            final String answer = chatClient
+                .prompt(prompt)
+                .advisors(advisor -> advisor.param("chat_memory_conversation_id", Long.toString(chatId))
+                    .param("chat_memory_response_size", 100))
+                .tools(toolObjects)
+                .call()
+                .content();
             logger.info("Answered: " + answer);
             return answer;
         } catch (Exception exception) {

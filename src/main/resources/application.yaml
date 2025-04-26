@@ -22,11 +22,3 @@ telegram:
 telegramIAConnector:
   uploadFolder: ${TELEGRAM_UPLOAD_FOLDER} # Use the absolute path, ex: /home/me/.telegramAIConnector/
   systemPromptFile: ${TELEGRAM_SYSTEM_PROMPT_FILE:} # Optional, file with system prompt
-  adminChatId: ${TELEGRAM_ADMIN_CHAT_ID:} # Required on server mode, chat to send system messages
-
-logging:
-  level:
-    io:
-      modelcontextprotocol:
-        client: WARN
-        spec: WARN

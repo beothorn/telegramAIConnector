@@ -135,23 +135,16 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     ) throws TelegramApiException {
         logger.info("Send markdown message to {}: {}", chatId, response);
         final String chatIdAsString = Long.toString(chatId);
-        final String fixForTelegramMarkdown = response
-//                .replace("-", "\\-")
-//                .replace(".", "\\.")
-//                .replace("!", "\\!")
-//                .replace("(", "\\(")
-//                .replace(")", "\\)")
-                ;
         final SendMessage sendMessage = SendMessage.builder()
             .parseMode(ParseMode.MARKDOWN)
             .chatId(chatIdAsString)
-            .text(fixForTelegramMarkdown)
+            .text(response)
             .build();
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
             // maybe it is a bad formatted markdown
-            logger.warn("Could not send markdown message '{}'", fixForTelegramMarkdown, e);
+            logger.warn("Could not send markdown message '{}'", response, e);
             sendMessage(chatId, response);
         }
     }
@@ -171,7 +164,15 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         telegramClient.execute(sendDocument);
     }
 
-    public void consumeSystemMessage(
+    public String consumeAnonymousMessage(
+            final String message
+    ) {
+        logger.info("Consume anonymous message: {}", message);
+        final TelegramTools telegramTools = getTelegramTools(0L);
+        return aiBotService.prompt(0L, message, telegramTools, new SystemTools());
+    }
+
+    public String consumeSystemMessage(
         final Long chatId,
         final String message
     ) throws TelegramApiException {
@@ -184,6 +185,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
         logger.info("Response to " + chatId + ": " + text);
         sendMarkdownMessage(chatId, response);
+        return response;
     }
 
     private void consumeLogin(
@@ -219,16 +221,18 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
             if (text.startsWith("/")) {
                 final String[] commandWithArgs = text.split("\\s+", 2);
+                String command = commandWithArgs[0].substring(1);
                 if (commandWithArgs.length == 1) {
-                    consumeCommand(chatId, commandWithArgs[0], "");
+                    consumeCommand(chatId, command, "");
                 } else if (commandWithArgs.length == 2) {
-                    consumeCommand(chatId, commandWithArgs[0], commandWithArgs[1]);
+                    consumeCommand(chatId, command, commandWithArgs[1]);
                 } else {
                     throw new IllegalArgumentException("Bad command " + text);
                 }
             } else {
                 try {
-                    consumeText(chatId, text);
+                    String username = update.getMessage().getFrom().getUserName();
+                    consumeText(chatId, username + ": " + text);
                 } catch (TelegramApiException e) {
                     logger.error("Could not consume text '{}'", text, e);
                     throw e;
@@ -362,6 +366,69 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
         if (command.equalsIgnoreCase("chatId")) {
             sendMessage(chatId, "Your chat id is " + chatId);
+        }
+        if (command.equalsIgnoreCase("version")) {
+            final SystemTools systemTools = new SystemTools();
+            try {
+                sendMessage(chatId, systemTools.getVersion());
+            } catch (IOException e) {
+                logger.error("Could not get version.", e);
+                sendMessage(chatId, "Could not get version.");
+            }
+        }
+        if (command.equalsIgnoreCase("datetime")) {
+            final SystemTools systemTools = new SystemTools();
+            sendMessage(chatId, systemTools.getCurrentDateTime());
+        }
+        if (command.equalsIgnoreCase("list")) {
+            final TelegramTools telegramTools = new TelegramTools(
+                this,
+                aiBotService,
+                taskSchedulerService,
+                chatId,
+                uploadFolder
+            );
+            sendMessage(chatId, telegramTools.listUploadedFiles());
+        }
+        if (command.equalsIgnoreCase("delete")) {
+            final TelegramTools telegramTools = new TelegramTools(
+                    this,
+                    aiBotService,
+                    taskSchedulerService,
+                    chatId,
+                    uploadFolder
+            );
+            sendMessage(chatId, telegramTools.deleteFile(args));
+        }
+        if (command.equalsIgnoreCase("read")) {
+            final TelegramTools telegramTools = new TelegramTools(
+                    this,
+                    aiBotService,
+                    taskSchedulerService,
+                    chatId,
+                    uploadFolder
+            );
+            sendMessage(chatId, telegramTools.readFile(args));
+        }
+        if (command.equalsIgnoreCase("send")) {
+            final TelegramTools telegramTools = new TelegramTools(
+                    this,
+                    aiBotService,
+                    taskSchedulerService,
+                    chatId,
+                    uploadFolder
+            );
+            sendMessage(chatId, telegramTools.sendFile(args, ""));
+        }
+        if (command.equalsIgnoreCase("listTasks")) {
+            final TelegramTools telegramTools = new TelegramTools(
+                    this,
+                    aiBotService,
+                    taskSchedulerService,
+                    chatId,
+                    uploadFolder
+            );
+            sendMessage(chatId, telegramTools.listReminders());
         }
     }
 

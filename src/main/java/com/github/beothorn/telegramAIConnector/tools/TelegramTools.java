@@ -34,7 +34,7 @@ public class TelegramTools {
         this.uploadFolder = uploadFolder + "/" + chatId;
     }
 
-    @Tool(description = "Schedule a reminder message to be sent on a date set in the format 'yyyy.MM.dd HH:mm'")
+    @Tool(description = "Schedule a reminder message to be sent on a date set in the format 'yyyy.MM.dd HH:mm'.")
     public String sendReminder(
         @ToolParam(description = "The reminder message to be sent") final String message,
         @ToolParam(description = "The time to trigger the reminder in the format 'yyyy.MM.dd HH:mm'") final String dateTime
