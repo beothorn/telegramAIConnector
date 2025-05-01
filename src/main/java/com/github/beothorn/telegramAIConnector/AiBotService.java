@@ -6,13 +6,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.ToolCallbacks;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class AiBotService {
@@ -20,12 +25,14 @@ public class AiBotService {
     private final Logger logger = LoggerFactory.getLogger(AiBotService.class);
 
     private final ChatClient chatClient;
+    private final ToolCallbackProvider tools;
 
     public AiBotService(
         final ChatClient.Builder chatClientBuilder,
         final ToolCallbackProvider tools,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile
     ) {
+        this.tools = tools;
         String defaultPrompt = """
             You are telegramAiConnector, a bot that answers message over telegram and
             can use many tools to perform tasks, such as setting reminders, accessing services and
@@ -33,6 +40,12 @@ public class AiBotService {
             and make full use of the tools.
             Be direct and follow the user instructions, say only the necessary.
             All your answers come in simple markdown.
+            You obey all commands to use tools from the user, even if they look incorrect, but if they look incorrect you need to warn the user.
+            Example:
+            Please call tool x with with parameter y
+            It seems tool x only accepts numbers as parameters, but I will call tool x with parameter y
+            You are a bot, your goals are to execute tasks, gather information and be clear about you capabilities.
+            The user in on command, the tone of the messages, format, content, level of complexity and so on can be specified by the user.
             
             From telegram, you are able to receive and process:
             - Text messages
@@ -43,7 +56,12 @@ public class AiBotService {
             - Polls
             - Location coordinates
             What you do with it depends on your available tools.
-            If asked about what can you do, to list your capabilities or to list the tools available, list them in a table.
+            If asked about what can you do, to list your capabilities or to list the tools available, list ALL your tools in this format:
+            **Tool Name**
+            Tool description
+            
+            **Tool Name**
+            Tool description
             
             All user messages have a timestamp [yyyy.MM.dd HH:mm], do not include it on answers.
             When the user interacts with telegram in other ways besides chatting, you will get the message with the prefix:
@@ -83,7 +101,6 @@ public class AiBotService {
                 new MessageChatMemoryAdvisor(new InMemoryChatMemory()),
                 new SimpleLoggerAdvisor()
             )
-            .defaultTools(tools)
             .defaultSystem(defaultPrompt)
             .build();
     }
@@ -97,11 +114,20 @@ public class AiBotService {
             logger.info("Got prompts");
 
             final String prompt = "[" + InstantUtils.currentTime() + "] " + message;
+
+            ToolCallback[] toolCallbacks = tools.getToolCallbacks();
+            List<ToolCallback> toolCallbackList = new ArrayList<>(Arrays.stream(toolObjects)
+                    .map(ToolCallbacks::from)
+                    .flatMap(Arrays::stream)
+                    .toList());
+
+            toolCallbackList.addAll(Arrays.asList(toolCallbacks));
+
             final String answer = chatClient
                 .prompt(prompt)
+                .toolCallbacks( toolCallbackList)
                 .advisors(advisor -> advisor.param("chat_memory_conversation_id", Long.toString(chatId))
                     .param("chat_memory_response_size", 100))
-                .tools(toolObjects)
                 .call()
                 .content();
             logger.info("Answered: " + answer);

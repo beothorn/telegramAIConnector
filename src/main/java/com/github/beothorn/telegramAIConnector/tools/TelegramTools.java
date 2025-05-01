@@ -74,7 +74,7 @@ public class TelegramTools {
 
     @Tool(description = "List the scheduled reminders")
     public String listReminders() {
-        return taskSchedulerService.listScheduledKeys();
+        return taskSchedulerService.listScheduledKeys(chatId);
     }
 
     @Tool(description = "Schedule a command to be sent to the ai assistant after an interval in minutes.")

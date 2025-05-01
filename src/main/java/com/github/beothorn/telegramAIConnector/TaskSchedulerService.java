@@ -6,10 +6,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
@@ -76,7 +76,7 @@ public class TaskSchedulerService {
         return Optional.of(cancelledTask);
     }
 
-    public synchronized String listScheduledKeys() {
+    public synchronized String listScheduledKeys(Long chatId) {
         return tasks.values().stream().map(Objects::toString).collect(Collectors.joining("\n"));
     }
 

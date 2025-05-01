@@ -39,6 +39,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final AiBotService aiBotService;
     private final TelegramClient telegramClient;
     private final TaskSchedulerService taskSchedulerService;
+    private final CommandService commandService;
     private final String password;
     private final String uploadFolder;
 
@@ -49,6 +50,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     public TelegramAiBot(
         final AiBotService aiBotService,
         final TaskSchedulerService taskSchedulerService,
+        final CommandService commandService,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegram.password}") final String password,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
@@ -57,6 +59,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.telegramClient = new OkHttpTelegramClient(botToken);
         this.password = password;
         this.taskSchedulerService = taskSchedulerService;
+        this.commandService = commandService;
         this.uploadFolder = uploadFolder;
     }
 
@@ -197,7 +200,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final String[] loginWithArgs = loginCommand.split("\\s+", 2);
         if (!loginWithArgs[0].equals("/login")) return;
         if (loginWithArgs.length != 2){
-            sendMessage(chatId, "Invalid logged in.");
+            sendMessage(chatId, "Invalid log in.");
             return;
         }
         if (loginWithArgs[1].equals(password)) {
@@ -364,72 +367,59 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     ) {
         logger.info("Consume command from {}: {} {}", chatId, command, args);
 
+        String availableCommands = """
+                    /help
+                    /chatId
+                    /version
+                    /datetime
+                    /list
+                    /delete file
+                    /read file
+                    /download file
+                    /listTasks
+                    /listTools""";
+
+        if (command.equalsIgnoreCase("help")) {
+            sendMessage(chatId, availableCommands);
+            return;
+        }
         if (command.equalsIgnoreCase("chatId")) {
             sendMessage(chatId, "Your chat id is " + chatId);
+            return;
         }
         if (command.equalsIgnoreCase("version")) {
-            final SystemTools systemTools = new SystemTools();
-            try {
-                sendMessage(chatId, systemTools.getVersion());
-            } catch (IOException e) {
-                logger.error("Could not get version.", e);
-                sendMessage(chatId, "Could not get version.");
-            }
+            sendMessage(chatId, commandService.getVersion());
+            return;
         }
         if (command.equalsIgnoreCase("datetime")) {
-            final SystemTools systemTools = new SystemTools();
-            sendMessage(chatId, systemTools.getCurrentDateTime());
+            sendMessage(chatId, commandService.getCurrentDateTime());
+            return;
         }
         if (command.equalsIgnoreCase("list")) {
-            final TelegramTools telegramTools = new TelegramTools(
-                this,
-                aiBotService,
-                taskSchedulerService,
-                chatId,
-                uploadFolder
-            );
-            sendMessage(chatId, telegramTools.listUploadedFiles());
+            sendMessage(chatId, commandService.listUploadedFiles(chatId));
+            return;
         }
         if (command.equalsIgnoreCase("delete")) {
-            final TelegramTools telegramTools = new TelegramTools(
-                    this,
-                    aiBotService,
-                    taskSchedulerService,
-                    chatId,
-                    uploadFolder
-            );
-            sendMessage(chatId, telegramTools.deleteFile(args));
+            sendMessage(chatId, commandService.delete(chatId, args));
+            return;
         }
         if (command.equalsIgnoreCase("read")) {
-            final TelegramTools telegramTools = new TelegramTools(
-                    this,
-                    aiBotService,
-                    taskSchedulerService,
-                    chatId,
-                    uploadFolder
-            );
-            sendMessage(chatId, telegramTools.readFile(args));
+            sendMessage(chatId, commandService.read(chatId, args));
+            return;
         }
-        if (command.equalsIgnoreCase("send")) {
-            final TelegramTools telegramTools = new TelegramTools(
-                    this,
-                    aiBotService,
-                    taskSchedulerService,
-                    chatId,
-                    uploadFolder
-            );
-            sendMessage(chatId, telegramTools.sendFile(args, ""));
+        if (command.equalsIgnoreCase("download")) {
+            sendMessage(chatId, commandService.download(this, chatId, args));
+            return;
         }
         if (command.equalsIgnoreCase("listTasks")) {
-            final TelegramTools telegramTools = new TelegramTools(
-                    this,
-                    aiBotService,
-                    taskSchedulerService,
-                    chatId,
-                    uploadFolder
-            );
-            sendMessage(chatId, telegramTools.listReminders());
+            sendMessage(chatId, commandService.listTasks(chatId));
+            return;
         }
+        if (command.equalsIgnoreCase("listTools")) {
+            sendMessage(chatId, commandService.listTools());
+            return;
+        }
+        sendMessage(chatId, "Unknown command '"+ command +"'. Available commands: \n" + availableCommands);
     }
 
     private void consumeText(

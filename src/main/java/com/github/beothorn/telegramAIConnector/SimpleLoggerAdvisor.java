@@ -7,6 +7,8 @@ import org.springframework.ai.chat.client.advisor.api.AdvisedResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisorChain;
 
+import java.util.stream.Collectors;
+
 public class SimpleLoggerAdvisor implements CallAroundAdvisor {
 
 	private static final Logger logger = LoggerFactory.getLogger(SimpleLoggerAdvisor.class);
@@ -24,11 +26,10 @@ public class SimpleLoggerAdvisor implements CallAroundAdvisor {
 	@Override
 	public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
 
-		logger.debug("BEFORE: {}", advisedRequest);
+		logger.info("TOOLS\n" + advisedRequest.toolCallbacks().stream().map(t -> t.getToolDefinition().name()).collect(Collectors.joining(", ")));
 
 		AdvisedResponse advisedResponse = chain.nextAroundCall(advisedRequest);
 
-		logger.debug("AFTER: {}", advisedResponse);
 
 		return advisedResponse;
 	}
