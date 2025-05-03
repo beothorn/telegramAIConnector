@@ -64,6 +64,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.taskSchedulerService = taskSchedulerService;
         this.commandService = commandService;
         this.uploadFolder = uploadFolder;
+
+        taskSchedulerService.restoreTasksFromDatabase(this);
     }
 
     @Override
@@ -196,6 +198,17 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         logger.info("Response to " + chatId + ": " + text);
         sendMarkdownMessage(chatId, response);
         return response;
+    }
+
+    public void execute(
+            final Long chatId,
+            final String command
+    ) {
+        try {
+            sendMarkdownMessage(chatId, command);
+        } catch (TelegramApiException e) {
+            logger.info("Could not send message '{}' to '{}'", command, chatId, e);
+        }
     }
 
     private void consumeLogin(

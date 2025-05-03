@@ -15,18 +15,18 @@ import java.time.Instant;
 
 public class TelegramTools {
 
-    private final TelegramAiBot bot;
+    private final TelegramAiBot telegramAiBot;
     private final Long chatId;
     private final TaskSchedulerService taskSchedulerService;
     private final String uploadFolder;
 
     public TelegramTools(
-            final TelegramAiBot bot,
+            final TelegramAiBot telegramAiBot,
             final TaskSchedulerService taskSchedulerService,
             final Long chatId,
             final String uploadFolder
     ) {
-        this.bot = bot;
+        this.telegramAiBot = telegramAiBot;
         this.taskSchedulerService = taskSchedulerService;
         this.chatId = chatId;
         this.uploadFolder = uploadFolder + "/" + chatId;
@@ -45,6 +45,7 @@ public class TelegramTools {
         }
 
         taskSchedulerService.schedule(
+                telegramAiBot,
             chatId,
             message,
             reminderDateTime
@@ -73,7 +74,7 @@ public class TelegramTools {
         @ToolParam(description = "The message in markdown format") final String message
     ) {
         try {
-            bot.sendMarkdownMessage(chatId, message);
+            telegramAiBot.sendMarkdownMessage(chatId, message);
         } catch (TelegramApiException e) {
             return "Could not send message, got error: '" + e.getMessage() + "'.";
         }
@@ -97,7 +98,7 @@ public class TelegramTools {
             return "'" + fileName + "' exists but is not a file.";
         }
         try {
-            bot.sendFileWithCaption(chatId, file.getAbsolutePath(), caption);
+            telegramAiBot.sendFileWithCaption(chatId, file.getAbsolutePath(), caption);
             return "File '" + fileName + "' sent successfully.";
         } catch (TelegramApiException e) {
             return "Could not send '" + fileName + "' got error: '" + e.getMessage() + "'.";
