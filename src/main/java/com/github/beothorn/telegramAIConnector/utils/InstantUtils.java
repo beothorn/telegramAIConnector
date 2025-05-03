@@ -1,4 +1,4 @@
-package com.github.beothorn.telegramAIConnector;
+package com.github.beothorn.telegramAIConnector.utils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

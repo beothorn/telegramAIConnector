@@ -1,7 +1,10 @@
-package com.github.beothorn.telegramAIConnector;
+package com.github.beothorn.telegramAIConnector.telegram;
 
+import com.github.beothorn.telegramAIConnector.AiBotService;
+import com.github.beothorn.telegramAIConnector.tasks.TaskSchedulerService;
 import com.github.beothorn.telegramAIConnector.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.tools.TelegramTools;
+import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +102,10 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final Long chatId,
         final String response
     ) {
+        if (Strings.isBlank(response)) {
+            logger.info("Refused empty message to {}", chatId);
+            return;
+        }
         logger.info("Send message to {}: {}", chatId, response);
         final SendMessage sendMessage = new SendMessage(Long.toString(chatId), response);
         try {
@@ -482,6 +489,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private TelegramTools getTelegramTools(
             final Long chatId
     ) {
-        return new TelegramTools(this, aiBotService, taskSchedulerService, chatId, uploadFolder);
+        return new TelegramTools(
+            this,
+            taskSchedulerService,
+            chatId,
+            uploadFolder
+        );
     }
 }

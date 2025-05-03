@@ -1,6 +1,9 @@
 package com.github.beothorn.telegramAIConnector.tools;
 
-import com.github.beothorn.telegramAIConnector.*;
+import com.github.beothorn.telegramAIConnector.tasks.TaskSchedulerService;
+import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
+import com.github.beothorn.telegramAIConnector.utils.FileUtils;
+import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -9,26 +12,21 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class TelegramTools {
 
     private final TelegramAiBot bot;
     private final Long chatId;
-    private final AiBotService aiBotService;
     private final TaskSchedulerService taskSchedulerService;
     private final String uploadFolder;
 
     public TelegramTools(
             final TelegramAiBot bot,
-            final AiBotService aiBotService,
             final TaskSchedulerService taskSchedulerService,
             final Long chatId,
             final String uploadFolder
     ) {
         this.bot = bot;
-        this.aiBotService = aiBotService;
         this.taskSchedulerService = taskSchedulerService;
         this.chatId = chatId;
         this.uploadFolder = uploadFolder + "/" + chatId;
@@ -47,15 +45,8 @@ public class TelegramTools {
         }
 
         taskSchedulerService.schedule(
+            chatId,
             message,
-            () -> {
-                try {
-                    bot.sendMarkdownMessage(chatId, message);
-                } catch (TelegramApiException e) {
-                    // too late
-                    e.printStackTrace();
-                }
-            },
             reminderDateTime
         );
         return "Reminder was registered under the key '" + message + "' at '" + dateTime + "'. Please inform the user.";
@@ -65,7 +56,7 @@ public class TelegramTools {
     public String deleteReminder(
         @ToolParam(description = "The reminder message to be deleted") final String message
     ) {
-        return taskSchedulerService.cancel(message).map(task ->
+        return taskSchedulerService.cancel(chatId, message).map(task ->
                 "The reminder with key '" + task.key() + "' at '" + task.dateTime() +
                         "'. was deleted. Please inform the user."
         ).orElse("Something went wrong, maybe the key '" +
@@ -75,22 +66,6 @@ public class TelegramTools {
     @Tool(description = "List the scheduled reminders")
     public String listReminders() {
         return taskSchedulerService.listScheduledKeys(chatId);
-    }
-
-    @Tool(description = "Schedule a command to be sent to the ai assistant after an interval in minutes.")
-    public void sendCommandInMinutes(
-        @ToolParam(description = "The command to be sent to the ai assistant.") final String command,
-        @ToolParam(description = "The amount of minutes to wait before sending the command") final int minutes
-    ) {
-        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-            final String response = aiBotService.prompt(chatId, "Scheduled: " + command, this, new SystemTools());
-            try {
-                bot.sendMarkdownMessage(chatId, response);
-            } catch (TelegramApiException e) {
-                // too late
-                e.printStackTrace();
-            }
-        }, minutes, TimeUnit.MINUTES);
     }
 
     @Tool(description = "Send a markdown message to the user asynchronously through telegram")

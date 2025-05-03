@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector;
 
+import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
@@ -18,18 +19,9 @@ public class Main {
         SpringApplication app = new SpringApplication(Main.class);
         app.setBannerMode(Banner.Mode.OFF);
 
-        // Ensure .telegramAIConnector folder exists in the user's home directory
-        String userHome = System.getProperty("user.home");
-        File configDir = new File(userHome, ".telegramAIConnector");
-        if (!configDir.exists()) {
-            boolean created = configDir.mkdirs();
-            if (!created) {
-                System.err.println("Warning: Could not create .telegramAIConnector directory at " + configDir.getAbsolutePath());
-            }
-        }
-
         // Load external properties.yaml from current working directory
         String currentDir = System.getProperty("user.dir");
+
         File externalYaml = new File(currentDir, "properties.yaml");
         if (externalYaml.exists()) {
             app.setDefaultProperties(

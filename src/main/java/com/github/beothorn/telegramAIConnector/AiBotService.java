@@ -1,5 +1,7 @@
 package com.github.beothorn.telegramAIConnector;
 
+import com.github.beothorn.telegramAIConnector.advisors.SimpleLoggerAdvisor;
+import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

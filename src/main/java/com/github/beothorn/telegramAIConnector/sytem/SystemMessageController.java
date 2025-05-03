@@ -1,5 +1,6 @@
-package com.github.beothorn.telegramAIConnector;
+package com.github.beothorn.telegramAIConnector.sytem;
 
+import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

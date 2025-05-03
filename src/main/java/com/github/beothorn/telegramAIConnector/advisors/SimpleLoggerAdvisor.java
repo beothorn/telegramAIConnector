@@ -1,4 +1,4 @@
-package com.github.beothorn.telegramAIConnector;
+package com.github.beothorn.telegramAIConnector.advisors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,6 @@ public class SimpleLoggerAdvisor implements CallAroundAdvisor {
 		logger.info("TOOLS\n" + advisedRequest.toolCallbacks().stream().map(t -> t.getToolDefinition().name()).collect(Collectors.joining(", ")));
 
 		AdvisedResponse advisedResponse = chain.nextAroundCall(advisedRequest);
-
 
 		return advisedResponse;
 	}
