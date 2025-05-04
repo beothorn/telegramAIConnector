@@ -1,5 +1,7 @@
 package com.github.beothorn.telegramAIConnector.tasks;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
@@ -8,6 +10,8 @@ import java.util.List;
 
 @Service
 public class TaskRepository {
+
+    private final Logger logger = LoggerFactory.getLogger(TaskRepository.class);
 
     private final String dbUrl;
 
@@ -25,6 +29,7 @@ public class TaskRepository {
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS tasks (
                     key TEXT PRIMARY KEY,
+                    chatId INTEGER NOT NULL,
                     dateTime TEXT NOT NULL,
                     command TEXT NOT NULL
                 )
@@ -38,11 +43,12 @@ public class TaskRepository {
         List<TaskCommand> tasks = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT key, dateTime, command FROM tasks")) {
+             ResultSet rs = stmt.executeQuery("SELECT key, chatId, dateTime, command FROM tasks")) {
 
             while (rs.next()) {
                 tasks.add(new TaskCommand(
                         rs.getString("key"),
+                        rs.getLong("chatId"),
                         rs.getString("dateTime"),
                         rs.getString("command")
                 ));
@@ -54,16 +60,18 @@ public class TaskRepository {
     }
 
     public void addTask(TaskCommand taskCommand) {
-        String sql = "INSERT OR REPLACE INTO tasks (key, dateTime, command) VALUES (?, ?, ?)";
+        String sql = "INSERT OR REPLACE INTO tasks (key, chatId, dateTime, command) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, taskCommand.key());
-            stmt.setString(2, taskCommand.dateTime());
-            stmt.setString(3, taskCommand.command());
+            stmt.setLong(2, taskCommand.chatId());
+            stmt.setString(3, taskCommand.dateTime());
+            stmt.setString(4, taskCommand.command());
             stmt.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Error adding task to repository.", e);
             throw new RuntimeException("Failed to add task", e);
         }
     }

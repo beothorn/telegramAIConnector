@@ -9,11 +9,11 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @RestController
 @RequestMapping("/")
-public class SystemMessageController {
+public class SystemMessageEndpoints {
 
     private final TelegramAiBot telegramAiBot;
 
-    public SystemMessageController(
+    public SystemMessageEndpoints(
         final TelegramAiBot telegramAiBot
     ) {
         this.telegramAiBot = telegramAiBot;

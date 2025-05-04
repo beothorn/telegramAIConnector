@@ -20,5 +20,5 @@ telegram:
   password: ${CHAT_PASSWORD} # Replace with a password. To login send the message on instagram /login CHAT_PASSWORD
 
 telegramIAConnector:
-  uploadFolder: ${TELEGRAM_UPLOAD_FOLDER} # Use the absolute path, ex: /home/me/.telegramAIConnector/
+  uploadFolder: ${user.dir} # Use the absolute path, ex: /home/me/.telegramAIConnector/
   systemPromptFile: ${TELEGRAM_SYSTEM_PROMPT_FILE:} # Optional, file with system prompt

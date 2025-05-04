@@ -1,7 +1,7 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
 import com.github.beothorn.telegramAIConnector.AiBotService;
-import com.github.beothorn.telegramAIConnector.tasks.TaskSchedulerService;
+import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.tools.TelegramTools;
 import org.apache.logging.log4j.util.Strings;
@@ -41,8 +41,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     private final AiBotService aiBotService;
     private final TelegramClient telegramClient;
-    private final TaskSchedulerService taskSchedulerService;
-    private final CommandService commandService;
+    private final TaskScheduler taskScheduler;
+    private final Commands commands;
     private final String password;
     private final String uploadFolder;
 
@@ -52,8 +52,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     public TelegramAiBot(
         final AiBotService aiBotService,
-        final TaskSchedulerService taskSchedulerService,
-        final CommandService commandService,
+        final TaskScheduler taskScheduler,
+        final Commands commands,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegram.password}") final String password,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
@@ -61,11 +61,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.aiBotService = aiBotService;
         this.telegramClient = new OkHttpTelegramClient(botToken);
         this.password = password;
-        this.taskSchedulerService = taskSchedulerService;
-        this.commandService = commandService;
+        this.taskScheduler = taskScheduler;
+        this.commands = commands;
         this.uploadFolder = uploadFolder;
 
-        taskSchedulerService.restoreTasksFromDatabase(this);
+        taskScheduler.restoreTasksFromDatabase(this);
     }
 
     @Override
@@ -408,35 +408,35 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             return;
         }
         if (command.equalsIgnoreCase("version")) {
-            sendMessage(chatId, commandService.getVersion());
+            sendMessage(chatId, commands.getVersion());
             return;
         }
         if (command.equalsIgnoreCase("datetime")) {
-            sendMessage(chatId, commandService.getCurrentDateTime());
+            sendMessage(chatId, commands.getCurrentDateTime());
             return;
         }
         if (command.equalsIgnoreCase("list")) {
-            sendMessage(chatId, commandService.listUploadedFiles(chatId));
+            sendMessage(chatId, commands.listUploadedFiles(chatId));
             return;
         }
         if (command.equalsIgnoreCase("delete")) {
-            sendMessage(chatId, commandService.delete(chatId, args));
+            sendMessage(chatId, commands.delete(chatId, args));
             return;
         }
         if (command.equalsIgnoreCase("read")) {
-            sendMessage(chatId, commandService.read(chatId, args));
+            sendMessage(chatId, commands.read(chatId, args));
             return;
         }
         if (command.equalsIgnoreCase("download")) {
-            sendMessage(chatId, commandService.download(this, chatId, args));
+            sendMessage(chatId, commands.download(this, chatId, args));
             return;
         }
         if (command.equalsIgnoreCase("listTasks")) {
-            sendMessage(chatId, commandService.listTasks(chatId));
+            sendMessage(chatId, commands.listTasks(chatId));
             return;
         }
         if (command.equalsIgnoreCase("listTools")) {
-            sendMessage(chatId, commandService.listTools());
+            sendMessage(chatId, commands.listTools());
             return;
         }
         sendMessage(chatId, "Unknown command '"+ command +"'. Available commands: \n" + availableCommands);
@@ -504,7 +504,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     ) {
         return new TelegramTools(
             this,
-            taskSchedulerService,
+                taskScheduler,
             chatId,
             uploadFolder
         );

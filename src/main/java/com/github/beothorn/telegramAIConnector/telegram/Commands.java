@@ -1,6 +1,6 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
-import com.github.beothorn.telegramAIConnector.tasks.TaskSchedulerService;
+import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.tools.TelegramTools;
 import org.slf4j.Logger;
@@ -15,21 +15,21 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @Service
-public class CommandService {
+public class Commands {
 
-    private final Logger logger = LoggerFactory.getLogger(CommandService.class);
+    private final Logger logger = LoggerFactory.getLogger(Commands.class);
 
     private final SystemTools systemTools;
-    private final TaskSchedulerService taskSchedulerService;
+    private final TaskScheduler taskScheduler;
     private final ToolCallbackProvider toolCallbackProvider;
     private final String uploadFolder;
 
-    public CommandService(
-            final TaskSchedulerService taskSchedulerService,
+    public Commands(
+            final TaskScheduler taskScheduler,
             final ToolCallbackProvider toolCallbackProvider,
             @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
-        this.taskSchedulerService = taskSchedulerService;
+        this.taskScheduler = taskScheduler;
         this.toolCallbackProvider = toolCallbackProvider;
         this.uploadFolder = uploadFolder;
         this.systemTools = new SystemTools();
@@ -53,7 +53,7 @@ public class CommandService {
     ) {
         final TelegramTools telegramTools = new TelegramTools(
                 null,
-                taskSchedulerService,
+                taskScheduler,
                 chatId,
                 uploadFolder
         );
@@ -66,7 +66,7 @@ public class CommandService {
     ) {
         final TelegramTools telegramTools = new TelegramTools(
                 null,
-                taskSchedulerService,
+                taskScheduler,
                 chatId,
                 uploadFolder
         );
@@ -76,7 +76,7 @@ public class CommandService {
     public String read(Long chatId, String file) {
         final TelegramTools telegramTools = new TelegramTools(
                 null,
-                taskSchedulerService,
+                taskScheduler,
                 chatId,
                 uploadFolder
         );
@@ -90,7 +90,7 @@ public class CommandService {
     ) {
         final TelegramTools telegramTools = new TelegramTools(
                 telegramAiBot,
-                taskSchedulerService,
+                taskScheduler,
                 chatId,
                 uploadFolder
         );
@@ -100,7 +100,7 @@ public class CommandService {
     public String listTasks(
         final Long chatId
     ) {
-        return taskSchedulerService.listScheduledKeys(chatId);
+        return taskScheduler.listScheduledKeys(chatId);
     }
 
     public String listTools() {

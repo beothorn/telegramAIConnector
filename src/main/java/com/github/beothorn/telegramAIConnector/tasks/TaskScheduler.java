@@ -4,7 +4,6 @@ import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 @Service
-public class TaskSchedulerService {
+public class TaskScheduler {
 
     private final TaskRepository taskRepository;
 
@@ -32,10 +31,10 @@ public class TaskSchedulerService {
         }
     }
 
-    private final TaskScheduler scheduler;
+    private final org.springframework.scheduling.TaskScheduler scheduler;
     private final Map<Long, Map<String, ScheduledWithTime>> tasksPerChat = new HashMap<>();
 
-    public TaskSchedulerService(
+    public TaskScheduler(
         final TaskRepository taskRepository
     ) {
         this.taskRepository = taskRepository;
@@ -53,8 +52,7 @@ public class TaskSchedulerService {
         for (TaskCommand task : taskRepository.getAll()) {
             Instant dateTime = InstantUtils.parseToInstant(task.dateTime());
             if (dateTime.isAfter(Instant.now())) {
-                // Default all restored tasks to some chatId (e.g. 0) unless persisted per-user
-                schedule(telegramAiBot,0L, task.command(), dateTime, task.key(), false);
+                schedule(telegramAiBot,task.chatId(), task.command(), dateTime, task.key(), false);
             } else {
                 taskRepository.deleteTask(task.key()); // Clean up expired tasks
             }
@@ -83,13 +81,13 @@ public class TaskSchedulerService {
     ) {
         Map<String, ScheduledWithTime> tasksForChatId = tasksPerChat.getOrDefault(chatId, new HashMap<>());
 
-        TaskCommand taskCommand = new TaskCommand(key, InstantUtils.formatFromInstant(dateTime), command);
+        TaskCommand taskCommand = new TaskCommand(key, chatId, InstantUtils.formatFromInstant(dateTime), command);
 
         Runnable wrappedTask = () -> {
             try {
                 telegramAiBot.execute(chatId, command);
             } finally {
-                synchronized (TaskSchedulerService.this) {
+                synchronized (TaskScheduler.this) {
                     tasksForChatId.remove(key);
                     taskRepository.deleteTask(key); // Remove after execution
                 }

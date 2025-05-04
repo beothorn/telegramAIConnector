@@ -1,6 +1,6 @@
 package com.github.beothorn.telegramAIConnector.tools;
 
-import com.github.beothorn.telegramAIConnector.tasks.TaskSchedulerService;
+import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import com.github.beothorn.telegramAIConnector.utils.FileUtils;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
@@ -17,17 +17,17 @@ public class TelegramTools {
 
     private final TelegramAiBot telegramAiBot;
     private final Long chatId;
-    private final TaskSchedulerService taskSchedulerService;
+    private final TaskScheduler taskScheduler;
     private final String uploadFolder;
 
     public TelegramTools(
             final TelegramAiBot telegramAiBot,
-            final TaskSchedulerService taskSchedulerService,
+            final TaskScheduler taskScheduler,
             final Long chatId,
             final String uploadFolder
     ) {
         this.telegramAiBot = telegramAiBot;
-        this.taskSchedulerService = taskSchedulerService;
+        this.taskScheduler = taskScheduler;
         this.chatId = chatId;
         this.uploadFolder = uploadFolder + "/" + chatId;
     }
@@ -44,7 +44,7 @@ public class TelegramTools {
             return "Can't set reminder to the past, the time now is '" + InstantUtils.formatFromInstant(Instant.now()) + "'";
         }
 
-        taskSchedulerService.schedule(
+        taskScheduler.schedule(
                 telegramAiBot,
             chatId,
             message,
@@ -57,7 +57,7 @@ public class TelegramTools {
     public String deleteReminder(
         @ToolParam(description = "The reminder message to be deleted") final String message
     ) {
-        return taskSchedulerService.cancel(chatId, message).map(task ->
+        return taskScheduler.cancel(chatId, message).map(task ->
                 "The reminder with key '" + task.key() + "' at '" + task.dateTime() +
                         "'. was deleted. Please inform the user."
         ).orElse("Something went wrong, maybe the key '" +
@@ -66,7 +66,7 @@ public class TelegramTools {
 
     @Tool(description = "List the scheduled reminders")
     public String listReminders() {
-        return taskSchedulerService.listScheduledKeys(chatId);
+        return taskScheduler.listScheduledKeys(chatId);
     }
 
     @Tool(description = "Send a markdown message to the user asynchronously through telegram")
