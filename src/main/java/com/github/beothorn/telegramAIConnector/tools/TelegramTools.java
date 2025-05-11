@@ -125,6 +125,25 @@ public class TelegramTools {
         return "The files are:\n" + result;
     }
 
+    @Tool(description = "Returns the full path for a file inside Telegram upload folder.")
+    public String getFileFullPath(
+        @ToolParam(description = "The file name to return the full path.") final String fileName
+    ) {
+        final File file = new File(uploadFolder + "/" + fileName);
+        File parent = new File(uploadFolder);
+        if (FileUtils.isInvalid(parent, file)) {
+            return "'" + fileName + "' is not a valid file name.";
+        }
+        if (!file.exists() || file.isDirectory()) {
+            return "This file does not exist.";
+        }
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            return "Something went wrong getting the file full path: " + e.getMessage();
+        }
+    }
+
     @Tool(description = "Deletes a file inside Telegram upload folder")
     public String deleteFile(
         @ToolParam(description = "The file name to delete. Make sure it is the right file.") final String fileName
