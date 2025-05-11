@@ -53,7 +53,9 @@ public class Main {
         final @Value("${telegram.key}") String botToken
     ) {
         return args -> {
+            logger.info("Bot will be registered.");
             botsApplication.registerBot(botToken, telegramAIBot);
+            logger.info("Bots application is running: " + botsApplication.isRunning());
         };
     }
 }

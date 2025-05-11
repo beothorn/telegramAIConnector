@@ -33,6 +33,7 @@ public class AiBotService {
     public AiBotService(
         final ChatClient.Builder chatClientBuilder,
         final ToolCallbackProvider tools,
+        final MessagesRepository messagesRepository,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile
     ) {
         this.tools = tools;
@@ -103,7 +104,7 @@ public class AiBotService {
         chatClient = chatClientBuilder
             .defaultAdvisors(
                 new MessageChatMemoryAdvisor(MessageWindowChatMemory.builder().chatMemoryRepository(
-                        new MessagesRepository()
+                    messagesRepository
                 ).maxMessages(10).build()),
                 new SimpleLoggerAdvisor()
             )

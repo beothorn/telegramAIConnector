@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector.persistence;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class MessagesRepository implements ChatMemoryRepository {
@@ -29,6 +29,7 @@ public class MessagesRepository implements ChatMemoryRepository {
                     messageIndex INTEGER NOT NULL,
                     role TEXT NOT NULL,
                     content TEXT NOT NULL,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                     PRIMARY KEY (chatId, messageIndex)
                 )
             """);
@@ -55,7 +56,9 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     @Override
-    public List<Message> findByConversationId(String conversationId) {
+    public List<Message> findByConversationId(
+        @NotNull final String conversationId
+    ) {
         List<Message> messages = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(
@@ -98,8 +101,11 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     @Override
-    public void saveAll(String conversationId, List<Message> messages) {
-        String sql = "INSERT OR REPLACE INTO messages (chatId, messageIndex, role, content) VALUES (?, ?, ?, ?)";
+    public void saveAll(
+        @NotNull final String conversationId,
+        final List<Message> messages
+    ) {
+        final String sql = "INSERT OR REPLACE INTO messages (chatId, messageIndex, role, content, timestamp) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -110,7 +116,7 @@ public class MessagesRepository implements ChatMemoryRepository {
                 stmt.setInt(2, i);
                 stmt.setString(3, message.getMessageType().getValue());
                 stmt.setString(4, message.getText());
-                Map<String, Object> metadata = message.getMetadata();
+                stmt.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
                 stmt.addBatch();
             }
 
@@ -122,7 +128,9 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     @Override
-    public void deleteByConversationId(String conversationId) {
+    public void deleteByConversationId(
+        @NotNull final String conversationId
+    ) {
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(
                      "DELETE FROM messages WHERE chatId = ?")) {
