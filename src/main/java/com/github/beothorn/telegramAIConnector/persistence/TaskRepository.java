@@ -1,5 +1,6 @@
-package com.github.beothorn.telegramAIConnector.tasks;
+package com.github.beothorn.telegramAIConnector.persistence;
 
+import com.github.beothorn.telegramAIConnector.tasks.TaskCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,16 +14,10 @@ public class TaskRepository {
 
     private final Logger logger = LoggerFactory.getLogger(TaskRepository.class);
 
-    private final String dbUrl;
+    private String dbUrl;
 
-    public TaskRepository() {
-        // TODO: Single db with message history
-        String userDir = System.getProperty("user.dir");
-        this.dbUrl = "jdbc:sqlite:" + userDir + "/tasks.db";
-        initDatabase();
-    }
-
-    private void initDatabase() {
+    public void initDatabase(final String dbUrl) {
+        this.dbUrl = dbUrl;
         try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement()) {
 

@@ -1,16 +1,17 @@
 package com.github.beothorn.telegramAIConnector;
 
-import com.github.beothorn.telegramAIConnector.advisors.SimpleLoggerAdvisor;
+import com.github.beothorn.telegramAIConnector.persistence.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.memory.InMemoryChatMemory;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.ai.tool.ToolCallbacks;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +42,9 @@ public class AiBotService {
             performing computations. You answer in a direct manner, using markdown. You are resourceful
             and make full use of the tools.
             Be direct and follow the user instructions, say only the necessary.
+            Behave professionally.
             All your answers come in simple markdown.
-            You obey all commands to use tools from the user, even if they look incorrect, but if they look incorrect you need to warn the user.
+            You obey all commands to use tools from the user, even if they look incorrect, although if they look incorrect you need to warn the user.
             Example:
             Please call tool x with with parameter y
             It seems tool x only accepts numbers as parameters, but I will call tool x with parameter y
@@ -100,7 +102,9 @@ public class AiBotService {
 
         chatClient = chatClientBuilder
             .defaultAdvisors(
-                new MessageChatMemoryAdvisor(new InMemoryChatMemory()),
+                new MessageChatMemoryAdvisor(MessageWindowChatMemory.builder().chatMemoryRepository(
+                        new MessagesRepository()
+                ).maxMessages(10).build()),
                 new SimpleLoggerAdvisor()
             )
             .defaultSystem(defaultPrompt)
@@ -128,8 +132,7 @@ public class AiBotService {
             final String answer = chatClient
                 .prompt(prompt)
                 .toolCallbacks( toolCallbackList)
-                .advisors(advisor -> advisor.param("chat_memory_conversation_id", Long.toString(chatId))
-                    .param("chat_memory_response_size", 100))
+                .advisors(advisor -> advisor.param("chat_memory_conversation_id", Long.toString(chatId)))
                 .call()
                 .content();
             logger.info("Answered: " + answer);

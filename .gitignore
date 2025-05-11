@@ -31,3 +31,5 @@ build
 
 # Db is created on execution dir
 *.db
+
+.telegramAIConnector

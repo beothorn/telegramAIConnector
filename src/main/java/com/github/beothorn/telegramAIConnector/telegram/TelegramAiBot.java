@@ -14,6 +14,7 @@ import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -65,6 +66,13 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.commands = commands;
         this.uploadFolder = uploadFolder;
 
+        try {
+            final User userBot = telegramClient.execute(new GetMe());
+            logger.info("¨Bot username: '" + userBot.getUserName() + "'");
+        } catch (TelegramApiException e) {
+            logger.error("Could not get bot info." ,e);
+        }
+
         taskScheduler.restoreTasksFromDatabase(this);
     }
 
@@ -75,6 +83,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     @Override
     public void consume(final Update update) {
+        logger.debug("Received update " + update);
         final Long chatId = update.getMessage().getChatId();
 
         // If not logged in, only respond to login attempt

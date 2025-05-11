@@ -1,4 +1,26 @@
 package com.github.beothorn.telegramAIConnector.persistence;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+@Service
 public class SQLite {
+
+    private static final Logger logger = LoggerFactory.getLogger(SQLite.class);
+
+    private final String dbUrl;
+
+    public SQLite(
+        @Value("${telegramIAConnector.dbFilesFolder}")  final String dbFolder,
+        final MessagesRepository messagesRepository,
+        final TaskRepository taskRepository
+    ) {
+        this.dbUrl = "jdbc:sqlite:" + dbFolder + "/telegramAIConnector.db";
+        logger.info("Connection string is '" + dbUrl + "'");
+        messagesRepository.initDatabase(dbUrl);
+        taskRepository.initDatabase(dbUrl);
+    }
+
 }

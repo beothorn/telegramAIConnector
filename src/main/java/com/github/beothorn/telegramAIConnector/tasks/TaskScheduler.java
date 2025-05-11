@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector.tasks;
 
+import com.github.beothorn.telegramAIConnector.persistence.TaskRepository;
 import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import jakarta.annotation.PreDestroy;
