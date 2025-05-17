@@ -179,4 +179,42 @@ public class TelegramTools {
             return "Failed to read file '" + fileName + "' because " + e.getMessage() + ".";
         }
     }
+
+    @Tool(description = "Saves string content as file inside Telegram upload folder")
+    public String saveAsFile(
+            @ToolParam(description = "The file name to be used.") final String fileName,
+            @ToolParam(description = "The file contents.") final String fileContents
+    ) {
+        final File file = new File(uploadFolder + "/" + fileName);
+        File parent = new File(uploadFolder);
+        if (FileUtils.isInvalid(parent, file)) {
+            return "'" + fileName + "' is not a valid file name.";
+        }
+        try {
+            parent.mkdirs(); // ensure folder exists
+            Files.writeString(file.toPath(), fileContents);
+            return "File '" + fileName + "' saved successfully.";
+        } catch (IOException e) {
+            return "Failed to save file '" + fileName + "' because " + e.getMessage() + ".";
+        }
+    }
+
+    @Tool(description = "Send string as file")
+    public String sendAsFile(
+            @ToolParam(description = "The file name to be used.") final String fileName,
+            @ToolParam(description = "The file contents.") final String fileContents
+    ) {
+        try {
+            File tempFile = File.createTempFile("telegram-temp-", "-" + fileName);
+            Files.writeString(tempFile.toPath(), fileContents);
+            telegramAiBot.sendFileWithCaption(chatId, tempFile.getAbsolutePath(), "Here is your file: " + fileName);
+            boolean deleted = tempFile.delete(); // cleanup
+            if (!deleted) {
+                tempFile.deleteOnExit(); // ensure deletion on exit if immediate deletion fails
+            }
+            return "File '" + fileName + "' sent successfully.";
+        } catch (IOException | TelegramApiException e) {
+            return "Could not send file '" + fileName + "' due to error: " + e.getMessage();
+        }
+    }
 }

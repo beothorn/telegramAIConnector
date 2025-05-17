@@ -6,7 +6,7 @@ plugins {
 
 group = "com.github.beothorn"
 version = "4.0.0"
-extra["springAiVersion"] = "1.0.0-SNAPSHOT"
+extra["springAiVersion"] = "1.0.0-RC1"
 
 java {
     toolchain {

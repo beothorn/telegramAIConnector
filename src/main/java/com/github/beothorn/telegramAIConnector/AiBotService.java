@@ -101,11 +101,17 @@ public class AiBotService {
             }
         }
 
+        final MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(
+            MessageWindowChatMemory.builder()
+                .chatMemoryRepository(
+                    messagesRepository
+                )
+                .maxMessages(10)
+            .build()
+        ).build();
         chatClient = chatClientBuilder
             .defaultAdvisors(
-                new MessageChatMemoryAdvisor(MessageWindowChatMemory.builder().chatMemoryRepository(
-                    messagesRepository
-                ).maxMessages(10).build()),
+                messageChatMemoryAdvisor,
                 new SimpleLoggerAdvisor()
             )
             .defaultSystem(defaultPrompt)
