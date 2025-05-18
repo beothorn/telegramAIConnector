@@ -45,6 +45,7 @@ public class Authentication {
         final Long chatId,
         final String passwordLogin
     ) {
+        logger.info("Chat {} logging in.", chatId);
         if (Strings.isNotBlank(password) && Strings.isNotBlank(passwordLogin) && password.equals(passwordLogin)) {
             logger.info("Chat {} used master password.", chatId);
             setLoggedIn(chatId);
