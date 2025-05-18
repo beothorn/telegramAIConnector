@@ -43,13 +43,7 @@ public class UserProfileAdvisor implements CallAdvisor {
 
         logger.debug("Chat id is {}", chatClientRequest.context().get("chat_memory_conversation_id"));
 
-        Long chatId = Long.getLong((String) chatClientRequest.context().get("chat_memory_conversation_id"));
-
-        if (chatId == null) {
-            logger.error("Chat id is null???");
-            return callAdvisorChain.nextCall(chatClientRequest);
-        }
-
+        Long chatId = Long.parseLong((String) chatClientRequest.context().get("chat_memory_conversation_id"));
 
         // TODO: given the current user profile and the last message, ask the AI to
         // update the profile if we found the user skill level in a subject
