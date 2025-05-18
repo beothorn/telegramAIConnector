@@ -418,7 +418,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /download file
                     /listTasks
                     /listTools
-                    /logout""";
+                    /logout
+                    /changePassword newPass""";
 
         if (command.equalsIgnoreCase("help")) {
             sendMessage(chatId, availableCommands);
@@ -463,6 +464,21 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         if (command.equalsIgnoreCase("logout")) {
             authentication.logout(chatId);
             sendMessage(chatId, "You were logged out.");
+            return;
+        }
+        if (command.equalsIgnoreCase("changePassword")) {
+            if(Strings.isNotBlank(args)) {
+                authentication.setPasswordForUser(chatId ,args);
+                sendMessage(chatId, "You password was changed.");
+                if(args.length() < 10) {
+                    sendMessage(
+                        chatId,
+                        "It is recommended that you chose a password with minimum 10 characters."
+                    );
+                }
+            } else {
+                sendMessage(chatId, "Password must not be empty.");
+            }
             return;
         }
         sendMessage(chatId, "Unknown command '"+ command +"'. Available commands: \n" + availableCommands);
