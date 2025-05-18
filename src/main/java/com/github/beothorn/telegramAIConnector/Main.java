@@ -24,25 +24,6 @@ public class Main {
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(Main.class);
         app.setBannerMode(Banner.Mode.OFF);
-
-        // Load external properties.yaml from current working directory
-        String currentDir = System.getProperty("user.dir");
-
-        File externalYaml = new File(currentDir, "properties.yaml");
-        if (externalYaml.exists()) {
-            logger.info("Application yaml found :'" + externalYaml.getAbsolutePath() + "'");
-            app.setDefaultProperties(
-                    Map.of("spring.config.additional-location", "file:" + externalYaml.getAbsolutePath())
-            );
-        } else {
-            Optional<String> springFile = Arrays.stream(args)
-                    .filter(a -> a.startsWith("--spring.config.location"))
-                    .findFirst();
-            springFile.ifPresentOrElse(
-                sf -> logger.info("Application yaml is " + sf.substring(sf.indexOf("=") + 1)),
-                () -> logger.info("Application yaml not found, using default.")
-            );
-        }
         app.run(args);
     }
 

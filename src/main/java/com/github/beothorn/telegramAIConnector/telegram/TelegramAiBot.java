@@ -83,8 +83,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     public void consume(final Update update) {
         logger.debug("Received update {}", update);
         final Long chatId = update.getMessage().getChatId();
+        logger.debug("Received update from chatId {}", chatId);
 
         final User from = update.getMessage().getFrom();
+
+        logger.debug("Will create user {}", from);
         userRepository.createOrUpdateUser(
             chatId,
             from.getUserName(),
@@ -232,7 +235,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
         final String[] loginWithArgs = loginCommand.split("\\s+", 2);
         if (!loginWithArgs[0].equals("/login")) {
-            sendMessage(chatId, "Your chat id is " + chatId + "." +
+            sendMessage(chatId, "Use /login PASSWORD to log in. Your chat id is " + chatId + "." +
                     "You are talking to TelegramAIConnector. " +
                     "Check instructions at https://github.com/beothorn/telegramAIConnector");
             return;
