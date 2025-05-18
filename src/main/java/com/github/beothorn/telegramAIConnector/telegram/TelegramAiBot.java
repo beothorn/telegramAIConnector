@@ -85,6 +85,10 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     public void consume(final Update update) {
         logger.debug("Received update {}", update);
         logger.debug("Update hasMessage is {}", update.hasMessage());
+        if (!update.hasMessage()) {
+            logger.info("Update with no message, skipping");
+            return;
+        }
         final Message message = update.getMessage();
         logger.debug("Received message {}", message);
         final Long chatId = message.getChatId();
@@ -110,14 +114,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
 
         // This should be unreachable if not logged in
-
-        if (update.hasMessage()) {
-            try {
-                consumeMessage(chatId, update);
-            } catch (TelegramApiException e) {
-                logger.error("Could not consume message", e);
-                sendMessage(chatId, "Something went wrong '" + e.getMessage() + "'" );
-            }
+        try {
+            consumeMessage(chatId, update);
+        } catch (TelegramApiException e) {
+            logger.error("Could not consume message", e);
+            sendMessage(chatId, "Something went wrong '" + e.getMessage() + "'" );
         }
     }
 
