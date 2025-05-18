@@ -1,6 +1,9 @@
 package com.github.beothorn.telegramAIConnector.user.profile.advisors;
 
+import com.github.beothorn.telegramAIConnector.ai.AiBotService;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
@@ -15,6 +18,8 @@ public class UserProfileAdvisor implements CallAdvisor {
 
     private final ChatModel chatModel;
     private final UserProfileRepository userProfileRepository;
+
+    private final Logger logger = LoggerFactory.getLogger(UserProfileAdvisor.class);
 
     public UserProfileAdvisor(
         final ChatModel chatModel,
@@ -46,8 +51,12 @@ public class UserProfileAdvisor implements CallAdvisor {
         // also the opposite, ex does not speak english (so avoid it)
 
         String profilePrompt = String.format("""
-                Given this profile: "User can speak english very well"
-                Given this message: "%s"
+                Given this profile:
+                %s
+                
+                Given this message:
+                %s
+                
                 Extract user preferences and expertise:
                 - Preferred name and pronoun
                 - Age, family status
@@ -63,10 +72,11 @@ public class UserProfileAdvisor implements CallAdvisor {
                 Return only the updated profile.
                 Your answer will be used as the new profile, so don`t add any explanation.
                 If no new information is on the message, just repeat the old profile.
-                """, currentUserMessage.getText());
+                """, userProfileRepository.getProfile(chatId) , currentUserMessage.getText());
 
         String call = chatModel.call(profilePrompt);
-        System.out.println(call);
+        userProfileRepository.setProfile(chatId, call);
+        logger.debug("Profile updated to '{}'", call);
 
         return callAdvisorChain.nextCall(processedChatClientRequest);
     }

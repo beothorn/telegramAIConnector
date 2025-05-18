@@ -67,6 +67,7 @@ public class Authentication {
 
     private void setLoggedIn(Long chatId) {
         String expirationDate = LocalDate.now().plusMonths(2).toString();
+        logger.info("Setting chatId {} as logged", chatId);
         authenticationRepository.setLoggedState(chatId, true, expirationDate);
         loggedChats.add(chatId);
     }
