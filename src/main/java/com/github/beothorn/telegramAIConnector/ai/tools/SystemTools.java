@@ -1,4 +1,4 @@
-package com.github.beothorn.telegramAIConnector.tools;
+package com.github.beothorn.telegramAIConnector.ai.tools;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.context.i18n.LocaleContextHolder;

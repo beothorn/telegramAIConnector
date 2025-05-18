@@ -1,9 +1,9 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
-import com.github.beothorn.telegramAIConnector.AiBotService;
+import com.github.beothorn.telegramAIConnector.ai.AiBotService;
+import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
+import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
-import com.github.beothorn.telegramAIConnector.tools.SystemTools;
-import com.github.beothorn.telegramAIConnector.tools.TelegramTools;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -32,9 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,26 +41,24 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final AiBotService aiBotService;
     private final TelegramClient telegramClient;
     private final TaskScheduler taskScheduler;
+    private final Authentication authentication;
     private final Commands commands;
-    private final String password;
     private final String uploadFolder;
-
-    private final Set<Long> loggedChats = new HashSet<>();
 
     private final Logger logger = LoggerFactory.getLogger(TelegramAiBot.class);
 
     public TelegramAiBot(
         final AiBotService aiBotService,
         final TaskScheduler taskScheduler,
+        final Authentication authentication,
         final Commands commands,
         @Value("${telegram.key}") final String botToken,
-        @Value("${telegram.password}") final String password,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.aiBotService = aiBotService;
         this.telegramClient = new OkHttpTelegramClient(botToken);
-        this.password = password;
         this.taskScheduler = taskScheduler;
+        this.authentication = authentication;
         this.commands = commands;
         this.uploadFolder = uploadFolder;
 
@@ -72,8 +68,6 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         } catch (TelegramApiException e) {
             logger.error("Could not get bot info." ,e);
         }
-
-        taskScheduler.restoreTasksFromDatabase(this);
     }
 
     @Override
@@ -83,19 +77,15 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     @Override
     public void consume(final Update update) {
-        logger.debug("Received update " + update);
+        logger.debug("Received update {}", update);
         final Long chatId = update.getMessage().getChatId();
 
         // If not logged in, only respond to login attempt
-        if (!loggedChats.contains(chatId)) {
+        if (authentication.isNotLogged(chatId)) {
             if (!update.hasMessage()) return;
             if (!update.getMessage().hasText()) return;
             final String text = update.getMessage().getText();
             consumeLogin(chatId, text);
-            if (!loggedChats.contains(chatId)) {
-                logger.info("Bad login attempt {}: {}", chatId, text);
-                sendMessage(chatId, "Your chat id is " + chatId + ".You are talking to TelegramAIConnector. check instructions at https://github.com/beothorn/telegramAIConnector");
-            }
             return;
         }
 
@@ -227,16 +217,23 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         logger.info("Consume login from {}: {}", chatId, loginCommand);
 
         final String[] loginWithArgs = loginCommand.split("\\s+", 2);
-        if (!loginWithArgs[0].equals("/login")) return;
+        if (!loginWithArgs[0].equals("/login")) {
+            sendMessage(chatId, "Your chat id is " + chatId + "." +
+                    "You are talking to TelegramAIConnector. " +
+                    "Check instructions at https://github.com/beothorn/telegramAIConnector");
+            return;
+        }
         if (loginWithArgs.length != 2){
             sendMessage(chatId, "Invalid log in.");
             return;
         }
-        if (loginWithArgs[1].equals(password)) {
+        String passwordLogin = loginWithArgs[1];
+        final boolean loggedSuccessfully = authentication.login(chatId, passwordLogin);
+        if (loggedSuccessfully) {
             logger.info("Logged in");
-            loggedChats.add(chatId);
             sendMessage(chatId, "You are logged in.");
         } else {
+            logger.info("Bad login attempt {}", chatId);
             sendMessage(chatId, "You are NOT logged in.");
         }
     }

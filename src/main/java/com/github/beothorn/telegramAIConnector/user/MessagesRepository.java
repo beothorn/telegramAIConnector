@@ -1,4 +1,4 @@
-package com.github.beothorn.telegramAIConnector.persistence;
+package com.github.beothorn.telegramAIConnector.user;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;

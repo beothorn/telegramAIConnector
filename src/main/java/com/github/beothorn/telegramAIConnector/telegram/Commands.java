@@ -1,8 +1,7 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
+import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
-import com.github.beothorn.telegramAIConnector.tools.SystemTools;
-import com.github.beothorn.telegramAIConnector.tools.TelegramTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.ToolCallback;

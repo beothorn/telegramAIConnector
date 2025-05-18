@@ -1,6 +1,5 @@
-package com.github.beothorn.telegramAIConnector.persistence;
+package com.github.beothorn.telegramAIConnector.tasks;
 
-import com.github.beothorn.telegramAIConnector.tasks.TaskCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

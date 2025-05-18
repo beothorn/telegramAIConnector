@@ -1,5 +1,7 @@
 package com.github.beothorn.telegramAIConnector.persistence;
 
+import com.github.beothorn.telegramAIConnector.tasks.TaskRepository;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

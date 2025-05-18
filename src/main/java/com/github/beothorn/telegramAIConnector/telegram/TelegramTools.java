@@ -1,8 +1,6 @@
-package com.github.beothorn.telegramAIConnector.tools;
+package com.github.beothorn.telegramAIConnector.telegram;
 
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
-import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
-import com.github.beothorn.telegramAIConnector.utils.FileUtils;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -30,6 +28,19 @@ public class TelegramTools {
         this.taskScheduler = taskScheduler;
         this.chatId = chatId;
         this.uploadFolder = uploadFolder + "/" + chatId;
+    }
+
+    public static boolean isInvalid(
+            final File parentFolder,
+            final File fileToCreate
+    ) {
+        try {
+            String parentPath = parentFolder.getCanonicalPath();
+            String filePath = fileToCreate.getCanonicalPath();
+            return !filePath.startsWith(parentPath + File.separator);
+        } catch (IOException e) {
+            return true;
+        }
     }
 
     @Tool(description = "Schedule a reminder message to be sent on a date set in the format 'yyyy.MM.dd HH:mm'.")
@@ -88,7 +99,7 @@ public class TelegramTools {
     ) {
         File file = new File(uploadFolder + "/" + fileName);
         File parent = new File(uploadFolder);
-        if (FileUtils.isInvalid(parent, file)) {
+        if (isInvalid(parent, file)) {
             return "'" + fileName + "' is not a valid file name.";
         }
         if (!file.exists()) {
@@ -131,7 +142,7 @@ public class TelegramTools {
     ) {
         final File file = new File(uploadFolder + "/" + fileName);
         File parent = new File(uploadFolder);
-        if (FileUtils.isInvalid(parent, file)) {
+        if (isInvalid(parent, file)) {
             return "'" + fileName + "' is not a valid file name.";
         }
         if (!file.exists() || file.isDirectory()) {
@@ -150,7 +161,7 @@ public class TelegramTools {
     ) {
         final File toBeDeleted = new File(uploadFolder + "/" + fileName);
         File parent = new File(uploadFolder);
-        if (FileUtils.isInvalid(parent, toBeDeleted)) {
+        if (isInvalid(parent, toBeDeleted)) {
             return "'" + fileName + "' is not a valid file name.";
         }
         if (!toBeDeleted.exists() || toBeDeleted.isDirectory()) {
@@ -170,7 +181,7 @@ public class TelegramTools {
     ) {
         final File toBeRead = new File(uploadFolder + "/" + fileName);
         File parent = new File(uploadFolder);
-        if (FileUtils.isInvalid(parent, toBeRead)) {
+        if (isInvalid(parent, toBeRead)) {
             return "'" + fileName + "' is not a valid file name.";
         }
         try {
@@ -187,7 +198,7 @@ public class TelegramTools {
     ) {
         final File file = new File(uploadFolder + "/" + fileName);
         File parent = new File(uploadFolder);
-        if (FileUtils.isInvalid(parent, file)) {
+        if (isInvalid(parent, file)) {
             return "'" + fileName + "' is not a valid file name.";
         }
         try {
