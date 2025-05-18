@@ -21,6 +21,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
@@ -76,16 +77,20 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     @Override
     public void consume(final List<Update> updates) {
+        logger.debug("Got {} updates.", updates.size());
         updates.forEach(this::consume);
     }
 
     @Override
     public void consume(final Update update) {
         logger.debug("Received update {}", update);
-        final Long chatId = update.getMessage().getChatId();
+        logger.debug("Update hasMessage is {}", update.hasMessage());
+        final Message message = update.getMessage();
+        logger.debug("Received message {}", message);
+        final Long chatId = message.getChatId();
         logger.debug("Received update from chatId {}", chatId);
 
-        final User from = update.getMessage().getFrom();
+        final User from = message.getFrom();
 
         logger.debug("Will create user {}", from);
         userRepository.createOrUpdateUser(
@@ -98,8 +103,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         // If not logged in, only respond to login attempt
         if (authentication.isNotLogged(chatId)) {
             if (!update.hasMessage()) return;
-            if (!update.getMessage().hasText()) return;
-            final String text = update.getMessage().getText();
+            if (!message.hasText()) return;
+            final String text = message.getText();
             consumeLogin(chatId, text);
             return;
         }
