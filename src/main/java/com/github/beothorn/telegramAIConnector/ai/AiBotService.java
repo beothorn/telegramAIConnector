@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector.ai;
 
+import com.github.beothorn.telegramAIConnector.ai.advisors.UserProfileAdvisor;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -9,6 +10,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -22,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 public class AiBotService {
@@ -30,15 +33,18 @@ public class AiBotService {
 
     private final ChatClient chatClient;
     private final ToolCallbackProvider tools;
+    private final ChatModel chatModel;
 
     public AiBotService(
         final ChatClient.Builder chatClientBuilder,
         final ToolCallbackProvider tools,
         final MessagesRepository messagesRepository,
+        final ChatModel chatModel,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile,
         @Value("classpath:prompt.txt") final Resource defaultPromptResource
     ) {
         this.tools = tools;
+        this.chatModel = chatModel;
         String defaultPrompt = "";
         try {
             defaultPrompt = new String(defaultPromptResource.getInputStream().readAllBytes());
@@ -89,10 +95,15 @@ public class AiBotService {
 
             toolCallbackList.addAll(Arrays.asList(toolCallbacks));
 
+            Consumer<ChatClient.AdvisorSpec> chatMemoryConversationId = advisor ->
+                    advisor.param("chat_memory_conversation_id", Long.toString(chatId));
             final String answer = chatClient
                 .prompt(prompt)
                 .toolCallbacks( toolCallbackList)
-                .advisors(advisor -> advisor.param("chat_memory_conversation_id", Long.toString(chatId)))
+                .advisors(
+                    chatMemoryConversationId
+                )
+                .advisors(new UserProfileAdvisor(chatModel))
                 .call()
                 .content();
             logger.info("Answered: '{}'", answer);
