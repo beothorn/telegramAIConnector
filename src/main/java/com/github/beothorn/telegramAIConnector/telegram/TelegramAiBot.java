@@ -4,6 +4,7 @@ import com.github.beothorn.telegramAIConnector.ai.AiBotService;
 import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
+import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final TelegramClient telegramClient;
     private final TaskScheduler taskScheduler;
     private final Authentication authentication;
+    private final UserRepository userRepository;
     private final Commands commands;
     private final String uploadFolder;
 
@@ -51,6 +53,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final AiBotService aiBotService,
         final TaskScheduler taskScheduler,
         final Authentication authentication,
+        final UserRepository userRepository,
         final Commands commands,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
@@ -59,6 +62,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.telegramClient = new OkHttpTelegramClient(botToken);
         this.taskScheduler = taskScheduler;
         this.authentication = authentication;
+        this.userRepository = userRepository;
         this.commands = commands;
         this.uploadFolder = uploadFolder;
 
@@ -80,6 +84,14 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         logger.debug("Received update {}", update);
         final Long chatId = update.getMessage().getChatId();
 
+        final User from = update.getMessage().getFrom();
+        userRepository.createOrUpdateUser(
+            chatId,
+            from.getUserName(),
+            from.getFirstName(),
+            from.getLastName()
+        );
+
         // If not logged in, only respond to login attempt
         if (authentication.isNotLogged(chatId)) {
             if (!update.hasMessage()) return;
@@ -88,6 +100,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             consumeLogin(chatId, text);
             return;
         }
+
+        // This should be unreachable if not logged in
 
         if (update.hasMessage()) {
             try {

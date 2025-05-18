@@ -40,4 +40,11 @@ public class Authentication {
         logger.info("Chat Bad login attempt {}", chatId);
         return false;
     }
+
+    public void setPasswordForUser(
+        final Long chatId,
+        final String passwordLogin
+    ) {
+        // TODO
+    }
 }

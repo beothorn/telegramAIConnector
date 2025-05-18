@@ -4,10 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 @Service
 public class UserRepository {
@@ -18,13 +15,11 @@ public class UserRepository {
 
     public void initDatabase(final String dbUrl) {
         this.dbUrl = dbUrl;
-        try (Connection conn = DriverManager.getConnection(dbUrl);
-             Statement stmt = conn.createStatement()) {
+        try (Connection conn = DriverManager.getConnection(dbUrl); Statement stmt = conn.createStatement()) {
 
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS users (
                     chatId INTEGER PRIMARY KEY,
-                    profile TEXT NOT NULL,
                     username TEXT,
                     first_name TEXT,
                     last_name TEXT
@@ -34,6 +29,33 @@ public class UserRepository {
         } catch (SQLException e) {
             logger.error("Failed to initialize database", e);
             throw new RuntimeException("Failed to initialize database", e);
+        }
+    }
+
+    public void createOrUpdateUser(
+        final long chatId,
+        final String username,
+        final String firstName,
+        final String lastName
+    ) {
+        String insertSql = """
+            INSERT OR REPLACE INTO users (chatId, username, first_name, last_name)
+            VALUES (?, ?, ?, ?)
+        """;
+
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+
+            stmt.setLong(1, chatId);
+            stmt.setString(2, username);
+            stmt.setString(3, firstName);
+            stmt.setString(4, lastName);
+
+            stmt.executeUpdate();
+            logger.info("User with chatId {} added/updated.", chatId);
+
+        } catch (SQLException e) {
+            logger.error("Failed to add user with chatId {}", chatId, e);
         }
     }
 }
