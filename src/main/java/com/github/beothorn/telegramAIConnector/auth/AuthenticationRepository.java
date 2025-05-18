@@ -65,18 +65,21 @@ public class AuthenticationRepository {
         final boolean logged,
         final String logExpirationDate
     ) {
+        // TODO: Update only logged state (curent error when logging in the first time)
         String sql = """
-        UPDATE auth
-        SET logged = ?, log_expiration_date = ?
-        WHERE chatId = ?
-    """;
+            INSERT INTO auth (chatId, logged, log_expiration_date)
+            VALUES (?, ?, ?)
+            ON CONFLICT (chatId) DO UPDATE SET
+                logged = EXCLUDED.logged,
+                log_expiration_date = EXCLUDED.log_expiration_date
+        """;
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setBoolean(1, logged);
-            stmt.setString(2, logExpirationDate);
-            stmt.setLong(3, chatId);
+            stmt.setLong(1, chatId);
+            stmt.setBoolean(2, logged);
+            stmt.setString(3, logExpirationDate);
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {

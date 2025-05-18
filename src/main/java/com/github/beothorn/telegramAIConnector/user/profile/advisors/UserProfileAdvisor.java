@@ -69,7 +69,7 @@ public class UserProfileAdvisor implements CallAdvisor {
                 Return only the updated profile.
                 Your answer will be used as the new profile, so don`t add any explanation.
                 If no new information is on the message, just repeat the old profile.
-                """, userProfileRepository.getProfile(chatId) , currentUserMessage.getText());
+                """, userProfileRepository.getProfile(chatId).orElse("") , currentUserMessage.getText());
 
         String newProfile = chatModel.call(profilePrompt);
         userProfileRepository.setProfile(chatId, newProfile);
