@@ -34,11 +34,7 @@ public class UserProfileAdvisor implements CallAdvisor {
         final ChatClientRequest chatClientRequest,
         final CallAdvisorChain callAdvisorChain
     ) {
-        final SystemMessage systemMessage = chatClientRequest.prompt().getSystemMessage();
-        String augmentedSystemText = systemMessage.getText() + "\nStart the message with Heyooooo .";
-        ChatClientRequest processedChatClientRequest = chatClientRequest.mutate()
-                .prompt(chatClientRequest.prompt().augmentSystemMessage(augmentedSystemText))
-                .build();
+
         UserMessage currentUserMessage = chatClientRequest.prompt().getUserMessage();
 
         logger.debug("Chat id is {}", chatClientRequest.context().get("chat_memory_conversation_id"));
@@ -75,9 +71,16 @@ public class UserProfileAdvisor implements CallAdvisor {
                 If no new information is on the message, just repeat the old profile.
                 """, userProfileRepository.getProfile(chatId) , currentUserMessage.getText());
 
-        String call = chatModel.call(profilePrompt);
-        userProfileRepository.setProfile(chatId, call);
-        logger.debug("Profile updated to '{}'", call);
+        String newProfile = chatModel.call(profilePrompt);
+        userProfileRepository.setProfile(chatId, newProfile);
+        logger.debug("Profile updated to '{}'", newProfile);
+
+        final SystemMessage systemMessage = chatClientRequest.prompt().getSystemMessage();
+        ChatClientRequest processedChatClientRequest = chatClientRequest.mutate()
+                .prompt(chatClientRequest.prompt().augmentSystemMessage("\nThis is the profile of the user you are talking to." +
+                        "\nUse it to give the best, most personalized answer possible:\n" +
+                        newProfile))
+                .build();
 
         return callAdvisorChain.nextCall(processedChatClientRequest);
     }
