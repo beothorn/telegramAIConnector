@@ -1,4 +1,4 @@
-package com.github.beothorn.telegramAIConnector.ai.advisors;
+package com.github.beothorn.telegramAIConnector.user.profile.advisors;
 
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;

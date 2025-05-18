@@ -1,7 +1,7 @@
 package com.github.beothorn.telegramAIConnector.ai;
 
-import com.github.beothorn.telegramAIConnector.ai.advisors.UserProfileAdvisor;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
+import com.github.beothorn.telegramAIConnector.user.profile.advisors.UserProfileAdvisor;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
