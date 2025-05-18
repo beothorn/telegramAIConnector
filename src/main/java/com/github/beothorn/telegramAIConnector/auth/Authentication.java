@@ -31,6 +31,7 @@ public class Authentication {
         final Long chatId,
         final String passwordLogin
     ) {
+        // TODO: Check if ever tried to login, if not create a user entry
         if (passwordLogin.equals(password)) {
             logger.info("Chat {} is authenticated.", chatId);
             loggedChats.add(chatId);

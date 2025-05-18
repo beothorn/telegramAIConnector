@@ -9,7 +9,10 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 public class UserProfileAdvisor implements CallAdvisor {
 
     @Override
-    public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
+    public ChatClientResponse adviseCall(
+        final ChatClientRequest chatClientRequest,
+        final CallAdvisorChain callAdvisorChain
+    ) {
         return null;
     }
 
