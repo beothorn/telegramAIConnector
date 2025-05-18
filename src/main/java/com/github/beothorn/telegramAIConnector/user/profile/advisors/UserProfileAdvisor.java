@@ -77,7 +77,7 @@ public class UserProfileAdvisor implements CallAdvisor {
 
         final SystemMessage systemMessage = chatClientRequest.prompt().getSystemMessage();
         ChatClientRequest processedChatClientRequest = chatClientRequest.mutate()
-                .prompt(chatClientRequest.prompt().augmentSystemMessage("\nThis is the profile of the user you are talking to." +
+                .prompt(chatClientRequest.prompt().augmentSystemMessage(systemMessage + "\nThis is the profile of the user you are talking to." +
                         "\nUse it to give the best, most personalized answer possible:\n" +
                         newProfile))
                 .build();
