@@ -20,7 +20,7 @@ public class UserProfileRepository {
              Statement stmt = conn.createStatement()) {
 
             stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS users (
+                CREATE TABLE IF NOT EXISTS users_profile (
                     chatId INTEGER PRIMARY KEY,
                     profile TEXT NOT NULL
                 )
@@ -39,7 +39,7 @@ public class UserProfileRepository {
         }
         // Using INSERT ... ON CONFLICT for upsert behavior (update if exists, insert if not)
         // This is standard SQL and well-supported by SQLite.
-        String sql = "INSERT INTO users (chatId, profile) VALUES (?, ?) " +
+        String sql = "INSERT INTO users_profile (chatId, profile) VALUES (?, ?) " +
                 "ON CONFLICT(chatId) DO UPDATE SET profile = excluded.profile";
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -61,7 +61,7 @@ public class UserProfileRepository {
             logger.error("Database not initialized. Call initDatabase() first.");
             throw new IllegalStateException("Database not initialized.");
         }
-        String sql = "SELECT profile FROM users WHERE chatId = ?";
+        String sql = "SELECT profile FROM users_profile WHERE chatId = ?";
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
