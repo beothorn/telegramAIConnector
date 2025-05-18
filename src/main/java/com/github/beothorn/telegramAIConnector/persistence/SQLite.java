@@ -4,6 +4,7 @@ import com.github.beothorn.telegramAIConnector.auth.AuthenticationRepository;
 import com.github.beothorn.telegramAIConnector.tasks.TaskRepository;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,8 @@ public class SQLite {
         final MessagesRepository messagesRepository,
         final TaskRepository taskRepository,
         final UserRepository userRepository,
-        final AuthenticationRepository authenticationRepository
+        final AuthenticationRepository authenticationRepository,
+        final UserProfileRepository userProfileRepository
     ) {
         this.dbUrl = "jdbc:sqlite:" + dbFolder + "/telegramAIConnector.db";
         logger.info("Connection string is '{}'", dbUrl);
@@ -29,6 +31,7 @@ public class SQLite {
         taskRepository.initDatabase(dbUrl);
         userRepository.initDatabase(dbUrl);
         authenticationRepository.initDatabase(dbUrl);
+        userProfileRepository.initDatabase(dbUrl);
     }
 
 }
