@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector.backoffice;
 
+import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskCommand;
 import com.github.beothorn.telegramAIConnector.tasks.TaskRepository;
 import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
@@ -17,15 +18,18 @@ public class Api {
     private final TelegramAiBot telegramAiBot;
     private final TaskRepository taskRepository;
     private final MessagesRepository messagesRepository;
+    private final Authentication authentication;
 
     public Api(
-            final TelegramAiBot telegramAiBot,
-            final TaskRepository taskRepository,
-            final MessagesRepository messagesRepository
+        final TelegramAiBot telegramAiBot,
+        final TaskRepository taskRepository,
+        final MessagesRepository messagesRepository,
+        final Authentication authentication
     ) {
         this.telegramAiBot = telegramAiBot;
         this.taskRepository = taskRepository;
         this.messagesRepository = messagesRepository;
+        this.authentication = authentication;
     }
 
     @PostMapping("/systemMessage")
@@ -36,8 +40,8 @@ public class Api {
         return telegramAiBot.consumeSystemMessage(chatId, message);
     }
 
-    @PostMapping("/chat")
-    public String systemMessage(
+    @PostMapping("/prompt")
+    public String prompt(
         @RequestParam("message") final String message
     ) throws TelegramApiException {
         return telegramAiBot.consumeAnonymousMessage(message);
@@ -71,5 +75,13 @@ public class Api {
     @DeleteMapping("/conversations/{chatId}")
     public void deleteConversation(@PathVariable String chatId) {
         messagesRepository.deleteByConversationId(chatId);
+    }
+
+    @PostMapping("/conversations/{chatId}/auth")
+    public void setPassword(
+        @PathVariable final Long chatId,
+        @RequestParam("password") final String password
+    ) {
+        authentication.setPasswordForUser(chatId, password);
     }
 }

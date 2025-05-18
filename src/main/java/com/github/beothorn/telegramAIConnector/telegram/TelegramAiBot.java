@@ -417,7 +417,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /read file
                     /download file
                     /listTasks
-                    /listTools""";
+                    /listTools
+                    /logout""";
 
         if (command.equalsIgnoreCase("help")) {
             sendMessage(chatId, availableCommands);
@@ -457,6 +458,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
         if (command.equalsIgnoreCase("listTools")) {
             sendMessage(chatId, commands.listTools());
+            return;
+        }
+        if (command.equalsIgnoreCase("logout")) {
+            authentication.logout(chatId);
+            sendMessage(chatId, "You were logged out.");
             return;
         }
         sendMessage(chatId, "Unknown command '"+ command +"'. Available commands: \n" + availableCommands);

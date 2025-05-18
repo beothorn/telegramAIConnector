@@ -2,9 +2,11 @@ package com.github.beothorn.telegramAIConnector.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.sql.*;
 
+@Service
 public class AuthenticationRepository {
 
     private final Logger logger = LoggerFactory.getLogger(AuthenticationRepository.class);
@@ -70,13 +72,13 @@ public class AuthenticationRepository {
     """;
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            pstmt.setBoolean(1, logged);
-            pstmt.setString(2, logExpirationDate);
-            pstmt.setLong(3, chatId);
+            stmt.setBoolean(1, logged);
+            stmt.setString(2, logExpirationDate);
+            stmt.setLong(3, chatId);
 
-            int rowsAffected = pstmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
                 logger.info("Set logged state for chatId {} to {} with expiration {}", chatId, logged, logExpirationDate);
             } else {
@@ -88,4 +90,30 @@ public class AuthenticationRepository {
         }
     }
 
+    public AuthData getAuthData(final long chatId) {
+        String sql = "SELECT chatId, password_hash, logged, log_expiration_date FROM auth WHERE chatId = ?";
+
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, chatId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Long foundChatId = rs.getLong("chatId");
+                    String passwordHash = rs.getString("password_hash");
+                    boolean logged = rs.getBoolean("logged");
+                    String logExpirationDate = rs.getString("log_expiration_date");
+
+                    return new AuthData(foundChatId, passwordHash, logged, logExpirationDate);
+                } else {
+                    logger.warn("No auth data found for chatId {}", chatId);
+                    return null;
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.error("Failed to retrieve auth data for chatId {}", chatId, e);
+            return null;
+        }
+    }
 }
