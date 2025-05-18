@@ -165,21 +165,25 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     public void sendMarkdownMessage(
         final Long chatId,
-        final String response
+        final String markdownMessage
     ) throws TelegramApiException {
-        logger.info("Send markdown message to {}: {}", chatId, response);
+        if (markdownMessage == null) {
+            logger.warn("Send markdown null message {}", chatId);
+        }
+        final String message = markdownMessage == null ? "" : markdownMessage;
+        logger.info("Send markdown message to {}: {}", chatId, message);
         final String chatIdAsString = Long.toString(chatId);
         final SendMessage sendMessage = SendMessage.builder()
             .parseMode(ParseMode.MARKDOWN)
             .chatId(chatIdAsString)
-            .text(response)
+            .text(message)
             .build();
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
             // maybe it is a bad formatted markdown
-            logger.warn("Could not send markdown message '{}'", response, e);
-            sendMessage(chatId, response);
+            logger.warn("Could not send markdown message '{}'", message, e);
+            sendMessage(chatId, message);
         }
     }
 
