@@ -83,7 +83,7 @@ public class AiBotService {
         final Object... toolObjects
     ) {
         try {
-            logger.info("Got prompts");
+            logger.debug("Got prompts");
 
             final String prompt = "[" + InstantUtils.currentTime() + "] " + message;
 
@@ -99,7 +99,7 @@ public class AiBotService {
                     advisor.param("chat_memory_conversation_id", Long.toString(chatId));
             final String answer = chatClient
                 .prompt(prompt)
-                .toolCallbacks( toolCallbackList)
+                .toolCallbacks(toolCallbackList)
                 .advisors(
                     chatMemoryConversationId
                 )
@@ -109,6 +109,7 @@ public class AiBotService {
             logger.info("Answered: '{}'", answer);
             return answer;
         } catch (Exception exception) {
+            logger.error("Failed prompt", exception);
             return exception.getMessage();
         }
     }

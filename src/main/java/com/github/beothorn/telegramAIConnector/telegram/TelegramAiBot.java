@@ -127,7 +127,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final String response
     ) {
         if (Strings.isBlank(response)) {
-            logger.info("Refused empty message to {}", chatId);
+            logger.warn("Refused empty message to {}", chatId);
             return;
         }
         logger.info("Send message to {}: {}", chatId, response);
@@ -165,12 +165,12 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     public void sendMarkdownMessage(
         final Long chatId,
-        final String markdownMessage
+        final String message
     ) throws TelegramApiException {
-        if (markdownMessage == null) {
-            logger.warn("Send markdown null message {}", chatId);
+        if (Strings.isBlank(message)) {
+            logger.warn("Refused empty message to {}", chatId);
+            return;
         }
-        final String message = markdownMessage == null ? "..." : markdownMessage;
         logger.info("Send markdown message to {}: {}", chatId, message);
         final String chatIdAsString = Long.toString(chatId);
         final SendMessage sendMessage = SendMessage.builder()
