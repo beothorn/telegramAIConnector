@@ -33,18 +33,18 @@ public class AiBotService {
 
     private final ChatClient chatClient;
     private final ToolCallbackProvider tools;
-    private final ChatModel chatModel;
+    private final UserProfileAdvisor userProfileAdvisor;
 
     public AiBotService(
         final ChatClient.Builder chatClientBuilder,
         final ToolCallbackProvider tools,
         final MessagesRepository messagesRepository,
-        final ChatModel chatModel,
+        final UserProfileAdvisor userProfileAdvisor,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile,
         @Value("classpath:prompt.txt") final Resource defaultPromptResource
     ) {
         this.tools = tools;
-        this.chatModel = chatModel;
+        this.userProfileAdvisor = userProfileAdvisor;
         String defaultPrompt = "";
         try {
             defaultPrompt = new String(defaultPromptResource.getInputStream().readAllBytes());
@@ -103,7 +103,7 @@ public class AiBotService {
                 .advisors(
                     chatMemoryConversationId
                 )
-                .advisors(new UserProfileAdvisor(chatModel))
+                .advisors(userProfileAdvisor)
                 .call()
                 .content();
             logger.info("Answered: '{}'", answer);

@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector.user.profile.advisors;
 
+import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
@@ -7,14 +8,20 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.stereotype.Service;
 
-// TODO: This will inject the user profile to customize responses based on user knowledge level
+@Service
 public class UserProfileAdvisor implements CallAdvisor {
 
     private final ChatModel chatModel;
+    private final UserProfileRepository userProfileRepository;
 
-    public UserProfileAdvisor(final ChatModel chatModel) {
+    public UserProfileAdvisor(
+        final ChatModel chatModel,
+        final UserProfileRepository userProfileRepository
+    ) {
         this.chatModel = chatModel;
+        this.userProfileRepository = userProfileRepository;
     }
 
     @Override
@@ -28,6 +35,9 @@ public class UserProfileAdvisor implements CallAdvisor {
                 .prompt(chatClientRequest.prompt().augmentSystemMessage(augmentedSystemText))
                 .build();
         UserMessage currentUserMessage = chatClientRequest.prompt().getUserMessage();
+
+        Long chatId = Long.getLong((String) chatClientRequest.context().get("chat_memory_conversation_id"));
+
 
         // TODO: given the current user profile and the last message, ask the AI to
         // update the profile if we found the user skill level in a subject
