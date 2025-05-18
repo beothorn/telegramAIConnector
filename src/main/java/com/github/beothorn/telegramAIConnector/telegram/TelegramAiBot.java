@@ -170,7 +170,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         if (markdownMessage == null) {
             logger.warn("Send markdown null message {}", chatId);
         }
-        final String message = markdownMessage == null ? "" : markdownMessage;
+        final String message = markdownMessage == null ? "..." : markdownMessage;
         logger.info("Send markdown message to {}: {}", chatId, message);
         final String chatIdAsString = Long.toString(chatId);
         final SendMessage sendMessage = SendMessage.builder()
