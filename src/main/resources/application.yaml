@@ -23,3 +23,4 @@ telegramIAConnector:
   uploadFolder: ${user.dir} # Use the absolute path, ex: /home/me/.telegramAIConnector/
   systemPromptFile: ${TELEGRAM_SYSTEM_PROMPT_FILE:} # Optional, file with system prompt
   dbFilesFolder: ${user.dir} # If you don`t want the db file on the same folder as the jar, change this here
+  messagesOnConversation: 10

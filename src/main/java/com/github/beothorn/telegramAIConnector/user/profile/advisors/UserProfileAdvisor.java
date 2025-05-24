@@ -1,6 +1,5 @@
 package com.github.beothorn.telegramAIConnector.user.profile.advisors;
 
-import com.github.beothorn.telegramAIConnector.ai.AiBotService;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,22 +10,32 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class UserProfileAdvisor implements CallAdvisor {
 
     private final ChatModel chatModel;
     private final UserProfileRepository userProfileRepository;
-
+    private final String prompt;
     private final Logger logger = LoggerFactory.getLogger(UserProfileAdvisor.class);
 
     public UserProfileAdvisor(
         final ChatModel chatModel,
-        final UserProfileRepository userProfileRepository
+        final UserProfileRepository userProfileRepository,
+        @Value("classpath:profilePrompt.txt") final Resource defaultPromptResource
     ) {
         this.chatModel = chatModel;
         this.userProfileRepository = userProfileRepository;
+        try {
+            prompt = new String(defaultPromptResource.getInputStream().readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -48,29 +57,7 @@ public class UserProfileAdvisor implements CallAdvisor {
         // also the opposite, ex does not speak english (so avoid it)
 
         String userProfile = userProfileRepository.getProfile(chatId).orElse("");
-        String profilePrompt = String.format("""
-                Given this profile:
-                %s
-                
-                Given this message:
-                %s
-                
-                Extract user preferences and expertise:
-                - Preferred name and pronoun
-                - Age, family status
-                - Family and friends
-                - Preferred language (e.g., English, Spanish)
-                - Profession and profession level
-                - Hobbies
-                - Dislikes
-                - Location (where user lives and works)
-                - General skills with level
-                - Custom preferences such as request on how to format the answer
-                - Skill level in domain-specific terms (e.g., beginner, expert)
-                Return only the updated profile.
-                Your answer will be used as the new profile, so don`t add any explanation.
-                If no new information is on the message, just repeat the old profile.
-                """, userProfile, currentUserMessage.getText());
+        String profilePrompt = String.format(prompt, userProfile, currentUserMessage.getText());
 
         String newProfile = chatModel.call(profilePrompt);
         userProfileRepository.setProfile(chatId, newProfile);

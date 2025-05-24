@@ -4,7 +4,11 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
-import org.springframework.ai.chat.messages.*;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
@@ -15,22 +19,29 @@ import java.util.List;
 public class MessagesRepository implements ChatMemoryRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(MessagesRepository.class);
+    private final int messageWindowSize;
 
     private String dbUrl;
+
+    public MessagesRepository(
+        @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation
+    ) {
+        this.messageWindowSize = messagesOnConversation;
+    }
 
     public void initDatabase(
         final String dbUrl
     ) {
         this.dbUrl = dbUrl;
-        try (Connection conn = DriverManager.getConnection(dbUrl);  Statement stmt = conn.createStatement()) {
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             Statement stmt = conn.createStatement()) {
+
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS messages (
                     chatId TEXT NOT NULL,
-                    messageIndex INTEGER NOT NULL,
                     role TEXT NOT NULL,
                     content TEXT NOT NULL,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (chatId, messageIndex)
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """);
 
@@ -62,36 +73,26 @@ public class MessagesRepository implements ChatMemoryRepository {
         List<Message> messages = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT messageIndex, role, content FROM messages WHERE chatId = ? ORDER BY messageIndex ASC")) {
+                     "SELECT role, content FROM messages WHERE chatId = ? ORDER BY timestamp DESC LIMIT ?")) {
 
             stmt.setString(1, conversationId);
+            stmt.setInt(2, messageWindowSize);
+
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-
                 String role = rs.getString("role");
                 String text = rs.getString("content");
 
-                Message message = null;
-
-                if (role.equals(MessageType.USER.getValue())) {
-                    message = new UserMessage(text);
-                }
-
-                if (role.equals(MessageType.ASSISTANT.getValue())) {
-                    message = new AssistantMessage(text);
-                }
-
-                if (role.equals(MessageType.SYSTEM.getValue())) {
-                    message = new SystemMessage(text);
-                }
-
-                if (role.equals(MessageType.TOOL.getValue())) {
-                    message = new SystemMessage(text); // for now, for using tool tables need to be modified
-                }
+                Message message = switch (role) {
+                    case "user" -> new UserMessage(text);
+                    case "assistant" -> new AssistantMessage(text);
+                    case "system", "tool" -> new SystemMessage(text); // Reuse SystemMessage for tool
+                    default -> null;
+                };
 
                 if (message != null) {
-                    messages.add(message);
+                    messages.add(0, message); // reverse order back to ascending
                 }
             }
         } catch (SQLException e) {
@@ -105,41 +106,29 @@ public class MessagesRepository implements ChatMemoryRepository {
         @NotNull final String conversationId,
         final List<Message> messages
     ) {
-        final String sql = "INSERT OR REPLACE INTO messages (chatId, messageIndex, role, content, timestamp) VALUES (?, ?, ?, ?, ?)";
+        if (messages.isEmpty()) return;
+
+        final String sql = "INSERT INTO messages (chatId, role, content, timestamp) VALUES (?, ?, ?, ?)";
+
+        Message message = messages.getLast(); // Only last message matters
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            for (int i = 0; i < messages.size(); i++) {
-                Message message = messages.get(i);
-                stmt.setString(1, conversationId);
-                stmt.setInt(2, i);
-                stmt.setString(3, message.getMessageType().getValue());
-                stmt.setString(4, message.getText());
-                stmt.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
-                stmt.addBatch();
-            }
+            stmt.setString(1, conversationId);
+            stmt.setString(2, message.getMessageType().getValue());
+            stmt.setString(3, message.getText());
+            stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
 
-            stmt.executeBatch();
+            stmt.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to save messages", e);
+            throw new RuntimeException("Failed to save message", e);
         }
     }
 
     @Override
-    public void deleteByConversationId(
-        @NotNull final String conversationId
-    ) {
-        try (Connection conn = DriverManager.getConnection(dbUrl);
-             PreparedStatement stmt = conn.prepareStatement(
-                     "DELETE FROM messages WHERE chatId = ?")) {
-
-            stmt.setString(1, conversationId);
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to delete conversation messages", e);
-        }
+    public void deleteByConversationId(@NotNull final String conversationId) {
+        // Never forget
     }
 }

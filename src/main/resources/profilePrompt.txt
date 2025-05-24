@@ -1,0 +1,24 @@
+ Given this profile:
+%s
+
+Given this message:
+%s
+
+Extract user preferences and expertise:
+- Languages spoken and preferred language
+- Special requests (example: be polite, use rot 13, avoid asking if you can help with anything else)
+- Preferred name and pronoun
+- Age, family status
+- Family and friends
+- Preferred language (e.g., English, Spanish)
+- Profession and profession level
+- Spiritual beliefs, religion or life philosophies
+- Hobbies
+- Dislikes
+- Location (where user lives and works)
+- General skills with level
+- Custom preferences such as request on how to format the answer
+- Skill level in domain-specific terms (e.g., beginner, expert)
+Return only the updated profile.
+Your answer will be used as the new profile, so don`t add any explanation.
+If no new information is on the message, just repeat the old profile.

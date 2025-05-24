@@ -10,7 +10,6 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -41,7 +40,8 @@ public class AiBotService {
         final MessagesRepository messagesRepository,
         final UserProfileAdvisor userProfileAdvisor,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile,
-        @Value("classpath:prompt.txt") final Resource defaultPromptResource
+        @Value("classpath:prompt.txt") final Resource defaultPromptResource,
+        @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation
     ) {
         this.tools = tools;
         this.userProfileAdvisor = userProfileAdvisor;
@@ -65,7 +65,7 @@ public class AiBotService {
                 .chatMemoryRepository(
                     messagesRepository
                 )
-                .maxMessages(10)
+                .maxMessages(messagesOnConversation)
             .build()
         ).build();
         chatClient = chatClientBuilder
