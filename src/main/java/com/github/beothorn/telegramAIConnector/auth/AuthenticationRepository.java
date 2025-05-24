@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
+import java.util.Optional;
 
 @Service
 public class AuthenticationRepository {
@@ -33,7 +34,7 @@ public class AuthenticationRepository {
         }
     }
 
-    public void addAuthEntry(
+    public AuthData addAuthEntry(
         final long chatId,
         final String passwordHash,
         final boolean logged,
@@ -54,10 +55,10 @@ public class AuthenticationRepository {
 
             stmt.executeUpdate();
             logger.info("Auth entry added/updated for chatId {}", chatId);
-
         } catch (SQLException e) {
             logger.error("Failed to add/update auth entry for chatId {}", chatId, e);
         }
+        return new AuthData(chatId, passwordHash, logged, logExpirationDate);
     }
 
     public void setLoggedState(
@@ -65,21 +66,18 @@ public class AuthenticationRepository {
         final boolean logged,
         final String logExpirationDate
     ) {
-        // TODO: Update only logged state (curent error when logging in the first time)
         String sql = """
-            INSERT INTO auth (chatId, logged, log_expiration_date)
-            VALUES (?, ?, ?)
-            ON CONFLICT (chatId) DO UPDATE SET
-                logged = EXCLUDED.logged,
-                log_expiration_date = EXCLUDED.log_expiration_date
+            UPDATE auth
+            SET logged = ?, log_expiration_date = ?
+            WHERE chatId = ?
         """;
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setLong(1, chatId);
-            stmt.setBoolean(2, logged);
-            stmt.setString(3, logExpirationDate);
+            stmt.setBoolean(1, logged);
+            stmt.setString(2, logExpirationDate);
+            stmt.setLong(3, chatId);
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
@@ -93,7 +91,7 @@ public class AuthenticationRepository {
         }
     }
 
-    public AuthData getAuthData(final long chatId) {
+    public Optional<AuthData> getAuthData(final long chatId) {
         String sql = "SELECT chatId, password_hash, logged, log_expiration_date FROM auth WHERE chatId = ?";
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -107,16 +105,16 @@ public class AuthenticationRepository {
                     boolean logged = rs.getBoolean("logged");
                     String logExpirationDate = rs.getString("log_expiration_date");
 
-                    return new AuthData(foundChatId, passwordHash, logged, logExpirationDate);
+                    return Optional.of(new AuthData(foundChatId, passwordHash, logged, logExpirationDate));
                 } else {
                     logger.warn("No auth data found for chatId {}", chatId);
-                    return null;
+                    return Optional.empty();
                 }
             }
 
         } catch (SQLException e) {
             logger.error("Failed to retrieve auth data for chatId {}", chatId, e);
-            return null;
+            return Optional.empty();
         }
     }
 }

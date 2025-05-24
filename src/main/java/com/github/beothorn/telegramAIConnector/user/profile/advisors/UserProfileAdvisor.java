@@ -47,6 +47,7 @@ public class UserProfileAdvisor implements CallAdvisor {
         // is a nurse (so we can use professional medical language) and so on
         // also the opposite, ex does not speak english (so avoid it)
 
+        String userProfile = userProfileRepository.getProfile(chatId).orElse("");
         String profilePrompt = String.format("""
                 Given this profile:
                 %s
@@ -69,7 +70,7 @@ public class UserProfileAdvisor implements CallAdvisor {
                 Return only the updated profile.
                 Your answer will be used as the new profile, so don`t add any explanation.
                 If no new information is on the message, just repeat the old profile.
-                """, userProfileRepository.getProfile(chatId).orElse("") , currentUserMessage.getText());
+                """, userProfile, currentUserMessage.getText());
 
         String newProfile = chatModel.call(profilePrompt);
         userProfileRepository.setProfile(chatId, newProfile);

@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -34,10 +35,14 @@ public class Authentication {
 
     public boolean isNotLogged(Long chatId) {
         if (loggedChats.contains(chatId)) return false;
-        AuthData authData = authenticationRepository.getAuthData(chatId);
-        if (authData != null && authData.logged()) {
-            loggedChats.add(chatId);
-        }
+        Optional<AuthData> authData = authenticationRepository.getAuthData(chatId);
+
+        authData.ifPresent(a -> {
+            if(a.logged()) {
+                loggedChats.add(chatId);
+            }
+        });
+
         return !loggedChats.contains(chatId);
     }
 
@@ -48,22 +53,34 @@ public class Authentication {
         logger.info("Chat {} logging in.", chatId);
         if (Strings.isNotBlank(password) && Strings.isNotBlank(passwordLogin) && password.equals(passwordLogin)) {
             logger.info("Chat {} used master password.", chatId);
-            setLoggedIn(chatId);
-            return true;
+            return setLoggedInWithMasterPassword(chatId);
         }
 
-        AuthData authData = authenticationRepository.getAuthData(chatId);
-        if (authData != null) {
+        Optional<AuthData> authData = authenticationRepository.getAuthData(chatId);
+        return authData.map(ad -> {
             String providedHash = hashPassword(passwordLogin);
-            if (providedHash.equals(authData.password_hash())) {
+            if (providedHash.equals(ad.password_hash())) {
                 logger.info("Chat {} authenticated successfully.", chatId);
                 setLoggedIn(chatId);
                 return true;
+            } else {
+                return false;
             }
-        }
+        }).orElseGet(() -> {
+            logger.info("Chat {} failed authentication attempt.", chatId);
+            return false;
+        });
+    }
 
-        logger.info("Chat {} failed authentication attempt.", chatId);
-        return false;
+    private boolean setLoggedInWithMasterPassword(Long chatId) {
+        // If user does not exist, create one with master pass, if not, should use user password
+        if(authenticationRepository.getAuthData(chatId).isPresent()) return false;
+        logger.info("Setting chatId {} as logged", chatId);
+        String masterPassHash = hashPassword(password);
+        String expirationDate = LocalDate.now().plusMonths(2).toString();
+        authenticationRepository.addAuthEntry(chatId, masterPassHash, true, expirationDate);
+        loggedChats.add(chatId);
+        return true;
     }
 
     private void setLoggedIn(Long chatId) {
