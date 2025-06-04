@@ -62,4 +62,5 @@ Posting to localhost:9996/systemMessage will send a system message prompt.
 - Schedule reminders and commands
 - Get messages from a http endpoint (optional)
 - Upload and download files
+- Rename uploaded files
 - Get the current time

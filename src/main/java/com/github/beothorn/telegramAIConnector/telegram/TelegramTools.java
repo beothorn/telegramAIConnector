@@ -175,6 +175,35 @@ public class TelegramTools {
         }
     }
 
+    @Tool(description = "Rename a file inside Telegram upload folder")
+    public String renameFile(
+        @ToolParam(description = "The current file name") final String currentName,
+        @ToolParam(description = "The new file name") final String newName
+    ) {
+        final File fromFile = new File(uploadFolder + "/" + currentName);
+        final File toFile = new File(uploadFolder + "/" + newName);
+        File parent = new File(uploadFolder);
+
+        if (isInvalid(parent, fromFile) || isInvalid(parent, toFile)) {
+            return "Invalid file name.";
+        }
+
+        if (!fromFile.exists() || fromFile.isDirectory()) {
+            return "The file '" + currentName + "' does not exist.";
+        }
+
+        if (toFile.exists()) {
+            return "The file '" + newName + "' already exists.";
+        }
+
+        try {
+            Files.move(fromFile.toPath(), toFile.toPath());
+            return "The file '" + currentName + "' was renamed to '" + newName + "'.";
+        } catch (IOException e) {
+            return "Failed to rename file '" + currentName + "' to '" + newName + "' because " + e.getMessage() + ".";
+        }
+    }
+
     @Tool(description = "Reads the text contents of a file inside Telegram upload folder")
     public String readFile(
         @ToolParam(description = "The file name to be read.") final String fileName
