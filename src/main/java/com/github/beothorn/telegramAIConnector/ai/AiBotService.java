@@ -3,6 +3,10 @@ package com.github.beothorn.telegramAIConnector.ai;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.profile.advisors.UserProfileAdvisor;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
+import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
+import ai.fal.client.FalClient;
+import ai.fal.client.ClientConfig;
+import ai.fal.client.CredentialsResolver;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +37,9 @@ public class AiBotService {
     private final ChatClient chatClient;
     private final ToolCallbackProvider tools;
     private final UserProfileAdvisor userProfileAdvisor;
+    private final FalClient falClient;
+    private final boolean kontextEnabled;
+    private final String uploadFolder;
 
     public AiBotService(
         final ChatClient.Builder chatClientBuilder,
@@ -41,10 +48,20 @@ public class AiBotService {
         final UserProfileAdvisor userProfileAdvisor,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile,
         @Value("classpath:prompt.txt") final Resource defaultPromptResource,
-        @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation
+        @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation,
+        @Value("${fal.key:}") final String falKey,
+        @Value("${fal.models.kontext.enabled:true}") final boolean kontextEnabled,
+        @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.tools = tools;
         this.userProfileAdvisor = userProfileAdvisor;
+        this.kontextEnabled = kontextEnabled;
+        this.uploadFolder = uploadFolder;
+        if (Strings.isNotBlank(falKey)) {
+            this.falClient = FalClient.withConfig(ClientConfig.withCredentials(CredentialsResolver.fromApiKey(falKey)));
+        } else {
+            this.falClient = null;
+        }
         String defaultPrompt = "";
         try {
             defaultPrompt = new String(defaultPromptResource.getInputStream().readAllBytes());
@@ -92,6 +109,11 @@ public class AiBotService {
                     .map(ToolCallbacks::from)
                     .flatMap(Arrays::stream)
                     .toList());
+
+            if (falClient != null && kontextEnabled) {
+                FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId);
+                toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(falAiTools)));
+            }
 
             toolCallbackList.addAll(Arrays.asList(toolCallbacks));
 
