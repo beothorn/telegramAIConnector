@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class FalAiTools {
 
@@ -43,6 +44,18 @@ public class FalAiTools {
         }
         String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(file));
         return "data:" + mime + ";base64," + base64;
+    }
+
+    private static Path toMp3(Path source) throws Exception {
+        Path mp3 = Files.createTempFile("telegram", ".mp3");
+        Process process = new ProcessBuilder(
+                "ffmpeg", "-y", "-i", source.toString(), mp3.toString()
+        ).redirectErrorStream(true).start();
+        if (!process.waitFor(30, TimeUnit.SECONDS) || process.exitValue() != 0) {
+            String logs = new String(process.getInputStream().readAllBytes());
+            throw new RuntimeException("ffmpeg failed: " + logs);
+        }
+        return mp3;
     }
 
     @Tool(description = "AI to edit images with an image and a text describing the transformation as input and a transformed image as output.")
@@ -81,8 +94,19 @@ public class FalAiTools {
                                 }
                             })
                             .build()
-            );
-            String url = result.getData().getAsJsonArray("images").get(0).getAsJsonObject().get("url").getAsString();
+            File audioFile = source;
+            Path temp = null;
+            String lower = fileName.toLowerCase();
+            if (lower.endsWith(".oga") || lower.endsWith(".ogg")) {
+                temp = toMp3(source.toPath());
+                audioFile = temp.toFile();
+            }
+            String dataUri = toDataUri(audioFile.toPath());
+            String text = result.getData().get("text").getAsString();
+            if (temp != null) {
+                Files.deleteIfExists(temp);
+            }
+            return text;
             try (InputStream in = new URL(url).openStream()) {
                 Files.createDirectories(parent.toPath());
                 Files.copy(in, dest.toPath());
