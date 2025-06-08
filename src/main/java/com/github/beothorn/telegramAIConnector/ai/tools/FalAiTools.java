@@ -66,6 +66,7 @@ public class FalAiTools {
             String dataUri = toDataUri(source.toPath());
             Map<String, Object> input = Map.of(
                     "prompt", prompt,
+                    "safety_tolerance", "5",
                     "image_url", dataUri
             );
             Output<JsonObject> result = falClient.subscribe(
