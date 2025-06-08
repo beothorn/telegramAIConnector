@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class FalAiTools {
 
@@ -46,10 +47,10 @@ public class FalAiTools {
     }
 
     @Tool(description = "AI to edit images with an image and a text describing the transformation as input and a transformed image as output.")
-    public String kontext(
-            @ToolParam(description = "Name of the source image located in the Telegram upload folder") String fileName,
-            @ToolParam(description = "Instruction describing the desired modification") String prompt,
-            @ToolParam(description = "Name of the output image to be created") String outputFileName
+    public String editImage(
+        @ToolParam(description = "Name of the source image located in the Telegram upload folder") String fileName,
+        @ToolParam(description = "Instruction describing the desired modification") String prompt,
+        @ToolParam(description = "Name of the output image to be created") String outputFileName
     ) {
         try {
             File parent = new File(uploadFolder);
@@ -70,17 +71,17 @@ public class FalAiTools {
                     "image_url", dataUri
             );
             Output<JsonObject> result = falClient.subscribe(
-                    "fal-ai/flux-pro/kontext",
-                    SubscribeOptions.<JsonObject>builder()
-                            .input(input)
-                            .logs(false)
-                            .resultType(JsonObject.class)
-                            .onQueueUpdate(u -> {
-                                if (u instanceof QueueStatus.InProgress progress) {
-                                    // ignore logs
-                                }
-                            })
-                            .build()
+                "fal-ai/flux-pro/kontext",
+                SubscribeOptions.<JsonObject>builder()
+                    .input(input)
+                    .logs(false)
+                    .resultType(JsonObject.class)
+                    .onQueueUpdate(u -> {
+                        if (u instanceof QueueStatus.InProgress progress) {
+                            // ignore logs
+                        }
+                    })
+                    .build()
             );
             String url = result.getData().getAsJsonArray("images").get(0).getAsJsonObject().get("url").getAsString();
             try (InputStream in = new URL(url).openStream()) {
@@ -93,9 +94,21 @@ public class FalAiTools {
         }
     }
 
+    private static Path toMp3(Path source) throws Exception {
+        Path mp3 = Files.createTempFile("telegram", ".mp3");
+        Process process = new ProcessBuilder(
+                "ffmpeg", "-y", "-i", source.toString(), mp3.toString()
+        ).redirectErrorStream(true).start();
+        if (!process.waitFor(30, TimeUnit.SECONDS) || process.exitValue() != 0) {
+            String logs = new String(process.getInputStream().readAllBytes());
+            throw new RuntimeException("ffmpeg failed: " + logs);
+        }
+        return mp3;
+    }
+
     @Tool(description = "Transcribes an audio file.")
-    public String whisper(
-            @ToolParam(description = "Name of the audio file located in the Telegram upload folder") String fileName
+    public String audioToText(
+        @ToolParam(description = "Name of the audio file located in the Telegram upload folder") String fileName
     ) {
         try {
             File parent = new File(uploadFolder);
@@ -108,22 +121,30 @@ public class FalAiTools {
                 return "File '" + fileName + "' not found.";
             }
 
-            String dataUri = toDataUri(source.toPath());
+            File audioFile = source;
+            String lower = fileName.toLowerCase();
+            if (lower.endsWith(".oga") || lower.endsWith(".ogg")) {
+                Path temp = toMp3(source.toPath());
+                audioFile = temp.toFile();
+            }
+
+            String dataUri = toDataUri(audioFile.toPath());
+
             Map<String, Object> input = Map.of(
                     "audio_url", dataUri
             );
             Output<JsonObject> result = falClient.subscribe(
-                    "fal-ai/whisper",
-                    SubscribeOptions.<JsonObject>builder()
-                            .input(input)
-                            .logs(false)
-                            .resultType(JsonObject.class)
-                            .onQueueUpdate(u -> {
-                                if (u instanceof QueueStatus.InProgress progress) {
-                                    // ignore logs
-                                }
-                            })
-                            .build()
+                "fal-ai/whisper",
+                SubscribeOptions.<JsonObject>builder()
+                    .input(input)
+                    .logs(false)
+                    .resultType(JsonObject.class)
+                    .onQueueUpdate(u -> {
+                        if (u instanceof QueueStatus.InProgress progress) {
+                            // ignore logs
+                        }
+                    })
+                    .build()
             );
             return result.getData().get("text").getAsString();
         } catch (Exception e) {
