@@ -45,7 +45,7 @@ public class FalAiTools {
         return "data:" + mime + ";base64," + base64;
     }
 
-    @Tool(description = "FLUX.1 Kontext [pro] handles both text and reference images as inputs, seamlessly enabling targeted, local edits and complex transformations of entire scenes.")
+    @Tool(description = "AI to edit images with an image and a text describing the transformation as input and a transformed image as output.")
     public String kontext(
             @ToolParam(description = "Name of the source image located in the Telegram upload folder") String fileName,
             @ToolParam(description = "Instruction describing the desired modification") String prompt,
