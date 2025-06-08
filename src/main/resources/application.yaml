@@ -29,3 +29,5 @@ fal: # optional, fal.ai models, if added, some extra functionalities are enabled
   models:
     kontext:
       enabled: true
+    whisper:
+      enabled: true

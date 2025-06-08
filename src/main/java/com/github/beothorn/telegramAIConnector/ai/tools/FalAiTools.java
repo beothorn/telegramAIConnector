@@ -39,7 +39,7 @@ public class FalAiTools {
     private static String toDataUri(Path file) throws Exception {
         String mime = Files.probeContentType(file);
         if (mime == null) {
-            mime = "image/png";
+            mime = "application/octet-stream";
         }
         String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(file));
         return "data:" + mime + ";base64," + base64;
@@ -89,6 +89,44 @@ public class FalAiTools {
             return "I created a new file " + outputFileName + " on your upload folder with the change you asked.";
         } catch (Exception e) {
             return "Failed to process image: " + e.getMessage();
+        }
+    }
+
+    @Tool(description = "Transcribes an audio file using fal.ai Whisper.")
+    public String whisper(
+            @ToolParam(description = "Name of the audio file located in the Telegram upload folder") String fileName
+    ) {
+        try {
+            File parent = new File(uploadFolder);
+            File source = new File(parent, fileName);
+
+            if (isInvalid(parent, source)) {
+                return "Invalid file name.";
+            }
+            if (!source.isFile()) {
+                return "File '" + fileName + "' not found.";
+            }
+
+            String dataUri = toDataUri(source.toPath());
+            Map<String, Object> input = Map.of(
+                    "audio_url", dataUri
+            );
+            Output<JsonObject> result = falClient.subscribe(
+                    "fal-ai/whisper",
+                    SubscribeOptions.<JsonObject>builder()
+                            .input(input)
+                            .logs(false)
+                            .resultType(JsonObject.class)
+                            .onQueueUpdate(u -> {
+                                if (u instanceof QueueStatus.InProgress progress) {
+                                    // ignore logs
+                                }
+                            })
+                            .build()
+            );
+            return result.getData().get("text").getAsString();
+        } catch (Exception e) {
+            return "Failed to transcribe audio: " + e.getMessage();
         }
     }
 }

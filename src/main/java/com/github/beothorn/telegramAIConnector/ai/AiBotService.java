@@ -39,6 +39,7 @@ public class AiBotService {
     private final UserProfileAdvisor userProfileAdvisor;
     private final FalClient falClient;
     private final boolean kontextEnabled;
+    private final boolean whisperEnabled;
     private final String uploadFolder;
 
     public AiBotService(
@@ -51,11 +52,13 @@ public class AiBotService {
         @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation,
         @Value("${fal.key:}") final String falKey,
         @Value("${fal.models.kontext.enabled:true}") final boolean kontextEnabled,
+        @Value("${fal.models.whisper.enabled:true}") final boolean whisperEnabled,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.tools = tools;
         this.userProfileAdvisor = userProfileAdvisor;
         this.kontextEnabled = kontextEnabled;
+        this.whisperEnabled = whisperEnabled;
         this.uploadFolder = uploadFolder;
         if (Strings.isNotBlank(falKey)) {
             this.falClient = FalClient.withConfig(ClientConfig.withCredentials(CredentialsResolver.fromApiKey(falKey)));
@@ -110,7 +113,7 @@ public class AiBotService {
                     .flatMap(Arrays::stream)
                     .toList());
 
-            if (falClient != null && kontextEnabled) {
+            if (falClient != null && (kontextEnabled || whisperEnabled)) {
                 FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId);
                 toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(falAiTools)));
             }
