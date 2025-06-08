@@ -35,6 +35,7 @@ dependencies {
     implementation("org.telegram:telegrambots-longpolling:8.0.0")
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("ai.fal.client:fal-client:0.7.1")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

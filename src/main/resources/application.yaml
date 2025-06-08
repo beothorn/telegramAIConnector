@@ -24,3 +24,8 @@ telegramIAConnector:
   systemPromptFile: ${TELEGRAM_SYSTEM_PROMPT_FILE:} # Optional, file with system prompt
   dbFilesFolder: ${user.dir} # If you don`t want the db file on the same folder as the jar, change this here
   messagesOnConversation: 10
+fal:
+  key: ${FAL_KEY:}
+  models:
+    kontext:
+      enabled: true
