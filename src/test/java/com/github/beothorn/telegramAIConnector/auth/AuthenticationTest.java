@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AuthenticationTest {
     static class InMemoryRepo extends AuthenticationRepository {
@@ -52,5 +53,13 @@ public class AuthenticationTest {
         auth.setPasswordForUser(20L, "pw");
         assertTrue(auth.login(20L, "pw"));
         assertFalse(auth.isNotLogged(20L));
+    }
+
+    @Test
+    void loginWithMasterOnlyWorksForUserWithNoPass() {
+        Authentication auth = new Authentication(repo, "master");
+        assertTrue(auth.login(10L, "master"));
+        auth.setPasswordForUser(10L, "pw");
+        assertFalse(auth.login(10L, "master"));
     }
 }

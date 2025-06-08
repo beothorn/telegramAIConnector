@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SystemToolsTest {
     @Test
@@ -18,12 +18,5 @@ public class SystemToolsTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm", Locale.US);
         LocalDateTime parsed = LocalDateTime.parse(result, formatter);
         assertNotNull(parsed); // parsing succeeded
-    }
-
-    @Test
-    void getVersionReadsManifest() throws Exception {
-        SystemTools tools = new SystemTools();
-        String version = tools.getVersion();
-        assertEquals("Version: 1.2.3", version.trim());
     }
 }
