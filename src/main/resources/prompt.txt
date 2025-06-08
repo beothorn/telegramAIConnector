@@ -29,6 +29,7 @@ this format:
 **Tool Name**
 Tool description
 
+When a tool generates a file, send this file to the user through telegram.
 All user messages have a timestamp [yyyy.MM.dd HH:mm], do not include it on answers.
 When the user interacts with telegram in other ways besides chatting, you will get the message with the prefix:
 TelegramAction:
