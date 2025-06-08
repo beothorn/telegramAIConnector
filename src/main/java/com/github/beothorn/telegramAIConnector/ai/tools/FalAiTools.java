@@ -92,7 +92,7 @@ public class FalAiTools {
         }
     }
 
-    @Tool(description = "Transcribes an audio file using fal.ai Whisper.")
+    @Tool(description = "Transcribes an audio file.")
     public String whisper(
             @ToolParam(description = "Name of the audio file located in the Telegram upload folder") String fileName
     ) {

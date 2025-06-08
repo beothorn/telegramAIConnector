@@ -26,8 +26,3 @@ telegramIAConnector:
   messagesOnConversation: 10
 fal: # optional, fal.ai models, if added, some extra functionalities are enabled
   key: ${FAL_KEY:}
-  models:
-    kontext:
-      enabled: true
-    whisper:
-      enabled: true
