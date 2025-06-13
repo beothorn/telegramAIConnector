@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.beothorn"
-version = "7.1.0"
+version = "7.1.1"
 extra["springAiVersion"] = "1.0.0-RC1"
 
 java {
@@ -59,11 +59,6 @@ springBoot {
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("gpr") {
-            from(components["java"])
-        }
-    }
     repositories {
         maven {
             name = "GitHubPackages"
