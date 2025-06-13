@@ -1,12 +1,12 @@
 :root {
     --bg-color: #f3f3f3;
     --text-color: #333;
-    --accent-color: #0063b1;
+    --accent-color: #0078d4;
     --table-bg: #fff;
     --table-header-bg: #e6e6e6;
     --border-color: #ccc;
-    --accent-hover: #004f8a;
-    --link-color: #0063b1;
+    --accent-hover: #005a9e;
+    --link-color: #0078d4;
 }
 
 body {
@@ -55,7 +55,7 @@ input[type="text"] {
 button {
     padding: 6px 12px;
     background-color: var(--accent-color);
-    color: var(--text-color);
+    color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -83,4 +83,10 @@ button:hover { background-color: var(--accent-hover); }
 
 #promptForm button {
     align-self: flex-end;
+}
+
+.rename-form {
+    display: flex;
+    gap: 4px;
+    align-items: center;
 }
