@@ -38,6 +38,7 @@ dependencies {
     implementation("ai.fal.client:fal-client:0.7.1")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.awaitility:awaitility:4.2.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
