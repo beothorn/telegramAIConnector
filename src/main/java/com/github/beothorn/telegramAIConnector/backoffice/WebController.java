@@ -61,6 +61,7 @@ public class WebController {
         model.addAttribute("messages", messagesRepository.getMessages(chatId, limit, page * limit));
         model.addAttribute("prevPage", Math.max(page - 1, 0));
         model.addAttribute("nextPage", page + 1);
+        model.addAttribute("page", page);
         model.addAttribute("tasks", taskRepository.findByChatId(Long.parseLong(chatId)));
         model.addAttribute("profile", userProfileRepository.getProfile(Long.parseLong(chatId)).orElse(""));
         model.addAttribute("files", fileService.list(Long.parseLong(chatId)));

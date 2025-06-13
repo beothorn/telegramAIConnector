@@ -14,40 +14,44 @@
     <span th:text="${chatId}"></span>
 </h1>
 <h2>Messages</h2>
-<table>
-    <tr><th>Role</th><th>Content</th><th>Actions</th></tr>
-    <tr th:each="m : ${messages}">
+<table id="messagesTable" th:data-chatid="${chatId}" th:data-page="${page}">
+    <thead>
+    <tr><th>Role</th><th>Content</th><th>Save</th><th>Delete</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="m : ${messages}" th:data-id="${m.id}">
         <td th:text="${m.role}"></td>
+        <td><textarea name="content" rows="2" th:text="${m.content}"></textarea></td>
         <td>
-            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-method="PUT">
-                <input type="text" name="content" th:value="${m.content}" size="80"/>
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-update="messages" data-method="PUT">
                 <button type="submit">Save</button>
             </form>
         </td>
         <td>
-            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-method="DELETE">
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-update="messages" data-method="DELETE">
                 <button type="submit">Delete</button>
             </form>
         </td>
     </tr>
+    </tbody>
 </table>
 <div>
     <a th:href="@{|/backoffice/conversations/${chatId}?page=${prevPage}|}">Prev</a>
     <a th:href="@{|/backoffice/conversations/${chatId}?page=${nextPage}|}">Next</a>
 </div>
 <h3>Add message</h3>
-<form id="addMessageForm" th:action="@{|/api/conversations/${chatId}/messages|}" data-fetch data-method="POST">
+<form id="addMessageForm" th:action="@{|/api/conversations/${chatId}/messages|}" data-fetch data-update="messages" data-method="POST" class="wide-form">
     <select name="role">
         <option value="user">user</option>
         <option value="assistant">assistant</option>
         <option value="system">system</option>
     </select>
-    <input type="text" name="content" size="80"/>
+    <input type="text" name="content"/>
     <button type="submit">Add</button>
 </form>
 <h2>Profile</h2>
-<form id="profileForm" th:action="@{|/api/profile/${chatId}|}" data-fetch data-method="POST">
-    <textarea name="profile" rows="5" cols="80" th:text="${profile}"></textarea><br/>
+<form id="profileForm" th:action="@{|/api/profile/${chatId}|}" data-fetch data-method="POST" class="wide-form">
+    <textarea name="profile" rows="5" th:text="${profile}"></textarea><br/>
     <button type="submit">Save</button>
 </form>
 <h2>Files</h2>

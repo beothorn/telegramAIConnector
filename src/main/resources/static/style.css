@@ -1,34 +1,56 @@
+:root {
+    --bg-color: #1e1e1e;
+    --text-color: #d4d4d4;
+    --accent-color: #007acc;
+    --table-bg: #252526;
+    --table-header-bg: #333333;
+    --border-color: #3c3c3c;
+    --accent-hover: #005a9e;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: var(--bg-color);
+    color: var(--text-color);
 }
 h1, h2 {
-    color: #333;
+    color: var(--text-color);
     margin-top: 0;
 }
 table {
     border-collapse: collapse;
     width: 100%;
     margin-bottom: 20px;
-    background-color: #fff;
+    background-color: var(--table-bg);
+    color: var(--text-color);
 }
 td, th {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     padding: 8px;
 }
 th {
-    background-color: #eee;
+    background-color: var(--table-header-bg);
 }
 form { margin-bottom: 10px; }
-input[type="text"], textarea { padding: 6px; }
+.wide-form textarea,
+.wide-form input[type="text"],
+textarea,
+input[type="text"] {
+    padding: 6px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
 button {
     padding: 6px 12px;
-    background-color: #4CAF50;
-    color: white;
+    background-color: var(--accent-color);
+    color: var(--text-color);
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
-button:hover { background-color: #45a049; }
+button:hover { background-color: var(--accent-hover); }

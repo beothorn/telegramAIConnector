@@ -8,17 +8,20 @@
 <body>
 <h1>Backoffice - <span th:text="${botName}"></span></h1>
 <h2>Anonymous prompt</h2>
-<form id="promptForm" action="/api/prompt" method="post" data-fetch>
-    <textarea name="message" rows="3" cols="80"></textarea><br/>
+<form id="promptForm" action="/api/prompt" method="post" data-fetch class="wide-form">
+    <textarea name="message" rows="3"></textarea><br/>
     <button type="submit">Send</button>
 </form>
 <div id="promptResult"></div>
 <h2>Conversations</h2>
-<ul>
-    <li th:each="chatId : ${conversations}">
-        <a th:href="@{|/backoffice/conversations/${chatId}|}" th:text="${chatId}"></a>
-    </li>
-</ul>
+<table>
+    <thead><tr><th>Chat Id</th></tr></thead>
+    <tbody>
+    <tr th:each="chatId : ${conversations}">
+        <td><a th:href="@{|/backoffice/conversations/${chatId}|}" th:text="${chatId}"></a></td>
+    </tr>
+    </tbody>
+</table>
 
 <h2>Tasks</h2>
 <table>
