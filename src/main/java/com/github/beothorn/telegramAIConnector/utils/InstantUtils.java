@@ -26,4 +26,10 @@ public class InstantUtils {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
         return localDateTime.format(formatter);
     }
+
+    public static String currentTimeSeconds() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd_HH:mm_ss");
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
+        return localDateTime.format(formatter);
+    }
 }

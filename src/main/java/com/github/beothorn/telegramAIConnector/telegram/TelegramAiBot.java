@@ -5,6 +5,8 @@ import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
+import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -35,6 +37,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.concurrent.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Component
@@ -47,6 +51,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final UserRepository userRepository;
     private final Commands commands;
     private final String uploadFolder;
+    private final ProcessingStatus processingStatus;
+    private final ExecutorService executor;
+    private final ScheduledExecutorService typingScheduler;
 
     private final Logger logger = LoggerFactory.getLogger(TelegramAiBot.class);
 
@@ -56,6 +63,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final Authentication authentication,
         final UserRepository userRepository,
         final Commands commands,
+        final ProcessingStatus processingStatus,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
@@ -66,6 +74,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.userRepository = userRepository;
         this.commands = commands;
         this.uploadFolder = uploadFolder;
+        this.processingStatus = processingStatus;
+        this.executor = Executors.newVirtualThreadPerTaskExecutor();
+        this.typingScheduler = Executors.newScheduledThreadPool(1);
 
         try {
             final User userBot = telegramClient.execute(new GetMe());
@@ -286,13 +297,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     throw new IllegalArgumentException("Bad command " + text);
                 }
             } else {
-                try {
-                    String username = update.getMessage().getFrom().getUserName();
-                    consumeText(chatId, username + ": " + text);
-                } catch (TelegramApiException e) {
-                    logger.error("Could not consume text '{}'", text, e);
-                    throw e;
-                }
+                String username = update.getMessage().getFrom().getUserName();
+                consumeText(chatId, username + ": " + text);
             }
         }
 
@@ -336,12 +342,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         if (update.getMessage().hasLocation()) {
             final double lat = update.getMessage().getLocation().getLatitude();
             final double lon = update.getMessage().getLocation().getLongitude();
-            try {
-                consumeLocation(chatId, lat, lon);
-            } catch (TelegramApiException e) {
-                logger.error("Failed to process location", e);
-                sendMessage(chatId, "Failed to process location: " + e.getMessage());
-            }
+            consumeLocation(chatId, lat, lon);
         }
 
         if (update.getMessage().hasAudio()) {
@@ -432,7 +433,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /listTasks
                     /listTools
                     /logout
-                    /changePassword newPass""";
+                    /changePassword newPass
+                    /doing""";
 
         if (command.equalsIgnoreCase("help")) {
             sendMessage(chatId, availableCommands);
@@ -474,6 +476,10 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             sendMessage(chatId, commands.listTools());
             return;
         }
+        if (command.equalsIgnoreCase("doing")) {
+            sendMessage(chatId, processingStatus.status(chatId));
+            return;
+        }
         if (command.equalsIgnoreCase("logout")) {
             authentication.logout(chatId);
             sendMessage(chatId, "You were logged out.");
@@ -500,46 +506,50 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private void consumeText(
         final Long chatId,
         final String text
-    ) throws TelegramApiException {
+    ) {
         logger.info("Consume text from {}: {}", chatId, text);
-        sendTypingCommand(chatId);
-
-        final TelegramTools telegramTools = getTelegramTools(chatId);
-        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
-
-        logger.info("Response to " + chatId + ": " + text);
-        sendMarkdownMessage(chatId, response);
+        runAsync(
+            chatId,
+            "message" + InstantUtils.currentTimeSeconds(),
+            () -> {
+                final TelegramTools telegramTools = getTelegramTools(chatId);
+                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+            }
+        );
     }
 
     private void consumeFile(
         final Long chatId,
         final Path uploadedFile
-    ) throws TelegramApiException {
+    ) {
         final String uploadedFileString = uploadedFile.toString();
         logger.info("Consume file from {}: {}", chatId, uploadedFileString);
-        sendTypingCommand(chatId);
         final String text = "SystemAction: User upload file to '" + uploadedFileString + "'.";
-        final TelegramTools telegramTools = getTelegramTools(chatId);
-        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
-        logger.info("Response to " + chatId + ": " + text);
-        sendMarkdownMessage(chatId, response);
+        runAsync(
+            chatId,
+            "file" + InstantUtils.currentTimeSeconds(),
+            () -> {
+                final TelegramTools telegramTools = getTelegramTools(chatId);
+                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+            }
+        );
     }
 
     private void consumeLocation(
         final Long chatId,
         final double latitude,
         final double longitude
-    ) throws TelegramApiException {
+    ) {
         logger.info("Consume location from {}: {}, {}", chatId, latitude, longitude);
-        sendTypingCommand(chatId);
-
         final String locationMessage = String.format("TelegramAction: User shared a location %f %f", latitude, longitude);
-
-        final TelegramTools telegramTools = getTelegramTools(chatId);
-        final String response = aiBotService.prompt(chatId, locationMessage, telegramTools, new SystemTools());
-
-        logger.info("Response to {} for location: {}", chatId, locationMessage);
-        sendMarkdownMessage(chatId, response);
+        runAsync(
+            chatId,
+            "location" + InstantUtils.currentTimeSeconds(),
+            () -> {
+                final TelegramTools telegramTools = getTelegramTools(chatId);
+                return aiBotService.prompt(chatId, locationMessage, telegramTools, new SystemTools());
+            }
+        );
     }
 
     private void sendTypingCommand(
@@ -553,6 +563,46 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
+    private void startTypingThread(
+        final Long chatId,
+        final CompletableFuture<?> processingFuture
+    ) {
+        final ScheduledFuture<?> typingFuture = typingScheduler.scheduleAtFixedRate(
+            () -> sendTypingCommand(chatId),
+            0,
+            5,
+            TimeUnit.SECONDS
+        );
+        processingFuture.whenComplete((r, t) -> typingFuture.cancel(false));
+    }
+
+    private void runAsync(
+        final Long chatId,
+        final String description,
+        final Supplier<String> work
+    ) {
+        final CompletableFuture<String> future = CompletableFuture.supplyAsync(work, executor);
+        processingStatus.register(chatId, future, description);
+        future.whenComplete((response, throwable) -> {
+            try {
+                if (throwable == null) {
+                    try {
+                        sendMarkdownMessage(chatId, response);
+                    } catch (final TelegramApiException e) {
+                        logger.error("Could not send result", e);
+                        sendMessage(chatId, "Failed sending result '" + e.getMessage() + "'");
+                    }
+                } else {
+                    logger.error("Failed async work", throwable);
+                    sendMessage(chatId, "Something went wrong '" + throwable.getMessage() + "'");
+                }
+            } finally {
+                processingStatus.unregister(chatId, future);
+            }
+        });
+        startTypingThread(chatId, future);
+    }
+
     @NotNull
     private TelegramTools getTelegramTools(
             final Long chatId
@@ -563,5 +613,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             chatId,
             uploadFolder
         );
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
+        typingScheduler.shutdown();
     }
 }
