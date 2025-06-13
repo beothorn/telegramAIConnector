@@ -59,6 +59,14 @@ springBoot {
 }
 
 publishing {
+    publications {
+        create<MavenPublication>("gpr") {
+            from(components["java"])
+            groupId = "com.github.beothorn"
+            artifactId = "telegramAIConnector"
+            version = project.version.toString() // << use project.version here
+        }
+    }
     repositories {
         maven {
             name = "GitHubPackages"
