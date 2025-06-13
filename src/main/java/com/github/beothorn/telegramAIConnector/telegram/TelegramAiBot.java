@@ -5,23 +5,14 @@ import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
+import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import com.github.beothorn.telegramAIConnector.telegram.ProcessingStatus;
-import jakarta.annotation.PreDestroy;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
@@ -46,6 +37,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.concurrent.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Component
@@ -517,7 +510,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         logger.info("Consume text from {}: {}", chatId, text);
         runAsync(
             chatId,
-            "message",
+            "message" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
                 return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
@@ -534,7 +527,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final String text = "SystemAction: User upload file to '" + uploadedFileString + "'.";
         runAsync(
             chatId,
-            "file",
+            "file" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
                 return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
@@ -551,7 +544,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final String locationMessage = String.format("TelegramAction: User shared a location %f %f", latitude, longitude);
         runAsync(
             chatId,
-            "location",
+            "location" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
                 return aiBotService.prompt(chatId, locationMessage, telegramTools, new SystemTools());
