@@ -4,6 +4,7 @@ import ai.fal.client.FalClient;
 import ai.fal.client.Output;
 import ai.fal.client.SubscribeOptions;
 import ai.fal.client.queue.QueueStatus;
+import com.github.beothorn.telegramAIConnector.utils.TelegramAIFileUtils;
 import com.google.gson.JsonObject;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -27,16 +28,6 @@ public class FalAiTools {
         this.uploadFolder = uploadFolder;
     }
 
-    private static boolean isInvalid(File parentFolder, File fileToCreate) {
-        try {
-            String parentPath = parentFolder.getCanonicalPath();
-            String filePath = fileToCreate.getCanonicalPath();
-            return !filePath.startsWith(parentPath + File.separator);
-        } catch (Exception e) {
-            return true;
-        }
-    }
-
     private static String toDataUri(Path file) throws Exception {
         String mime = Files.probeContentType(file);
         if (mime == null) {
@@ -57,7 +48,7 @@ public class FalAiTools {
             File source = new File(parent, fileName);
             File dest = new File(parent, outputFileName);
 
-            if (isInvalid(parent, source) || isInvalid(parent, dest)) {
+            if (TelegramAIFileUtils.isNotInParentFolder(parent, source) || TelegramAIFileUtils.isNotInParentFolder(parent, dest)) {
                 return "Invalid file name.";
             }
             if (!source.isFile()) {
@@ -114,7 +105,7 @@ public class FalAiTools {
             File parent = new File(uploadFolder);
             File source = new File(parent, fileName);
 
-            if (isInvalid(parent, source)) {
+            if (TelegramAIFileUtils.isNotInParentFolder(parent, source)) {
                 return "Invalid file name.";
             }
             if (!source.isFile()) {
