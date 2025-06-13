@@ -101,6 +101,39 @@ public class MessagesRepository implements ChatMemoryRepository {
         return messages;
     }
 
+    public List<Message> getConversations(
+        @NotNull final String conversationId
+    ) {
+        List<Message> messages = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT role, content FROM messages WHERE chatId = ? ORDER BY timestamp")) {
+
+            stmt.setString(1, conversationId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String role = rs.getString("role");
+                String text = rs.getString("content");
+
+                Message message = switch (role) {
+                    case "user" -> new UserMessage(text);
+                    case "assistant" -> new AssistantMessage(text);
+                    case "system", "tool" -> new SystemMessage(text); // Reuse SystemMessage for tool
+                    default -> null;
+                };
+
+                if (message != null) {
+                    messages.add(0, message); // reverse order back to ascending
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch messages", e);
+        }
+        return messages;
+    }
+
     @Override
     public void saveAll(
         @NotNull final String conversationId,

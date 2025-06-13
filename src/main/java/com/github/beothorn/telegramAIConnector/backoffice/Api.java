@@ -69,7 +69,7 @@ public class Api {
 
     @GetMapping("/conversations/{chatId}")
     public List<Message> getConversationMessages(@PathVariable String chatId) {
-        return messagesRepository.findByConversationId(chatId);
+        return messagesRepository.getConversations(chatId);
     }
 
     @DeleteMapping("/conversations/{chatId}")
