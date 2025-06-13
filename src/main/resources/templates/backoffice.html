@@ -7,12 +7,16 @@
 </head>
 <body>
 <h1>Backoffice - <span th:text="${botName}"></span></h1>
+<div class="section">
 <h2>Anonymous prompt</h2>
 <form id="promptForm" action="/api/prompt" method="post" data-fetch class="wide-form">
-    <textarea name="message" rows="3"></textarea><br/>
+    <textarea name="message" rows="3"></textarea>
     <button type="submit">Send</button>
 </form>
 <div id="promptResult"></div>
+</div>
+
+<div class="section">
 <h2>Conversations</h2>
 <table>
     <thead><tr><th>Chat Id</th></tr></thead>
@@ -22,7 +26,9 @@
     </tr>
     </tbody>
 </table>
+</div>
 
+<div class="section">
 <h2>Tasks</h2>
 <table>
     <tr>
@@ -38,5 +44,6 @@
         <td th:text="${task.command}"></td>
     </tr>
 </table>
+</div>
 </body>
 </html>

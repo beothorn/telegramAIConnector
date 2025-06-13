@@ -1,11 +1,12 @@
 :root {
-    --bg-color: #1e1e1e;
-    --text-color: #d4d4d4;
-    --accent-color: #007acc;
-    --table-bg: #252526;
-    --table-header-bg: #333333;
-    --border-color: #3c3c3c;
-    --accent-hover: #005a9e;
+    --bg-color: #f3f3f3;
+    --text-color: #333;
+    --accent-color: #0063b1;
+    --table-bg: #fff;
+    --table-header-bg: #e6e6e6;
+    --border-color: #ccc;
+    --accent-hover: #004f8a;
+    --link-color: #0063b1;
 }
 
 body {
@@ -32,6 +33,12 @@ td, th {
 th {
     background-color: var(--table-header-bg);
 }
+a {
+    color: var(--link-color);
+}
+a:visited {
+    color: var(--link-color);
+}
 form { margin-bottom: 10px; }
 .wide-form textarea,
 .wide-form input[type="text"],
@@ -54,3 +61,26 @@ button {
     cursor: pointer;
 }
 button:hover { background-color: var(--accent-hover); }
+
+.section {
+    background: var(--table-bg);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: center;
+}
+
+#promptForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#promptForm button {
+    align-self: flex-end;
+}
