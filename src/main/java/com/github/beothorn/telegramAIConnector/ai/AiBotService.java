@@ -4,6 +4,7 @@ import ai.fal.client.ClientConfig;
 import ai.fal.client.CredentialsResolver;
 import ai.fal.client.FalClient;
 import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
+import com.github.beothorn.telegramAIConnector.ai.tools.OpenAITools;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.profile.advisors.UserProfileAdvisor;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
@@ -38,6 +39,7 @@ public class AiBotService {
     private final ToolCallbackProvider tools;
     private final UserProfileAdvisor userProfileAdvisor;
     private final FalClient falClient;
+    private final String openAIKey;
     private final String uploadFolder;
 
     public AiBotService(
@@ -49,6 +51,7 @@ public class AiBotService {
         @Value("classpath:prompt.txt") final Resource defaultPromptResource,
         @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation,
         @Value("${fal.key:}") final String falKey,
+        @Value("${spring.ai.openai.api-key:}") final String openAIKey,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.tools = tools;
@@ -59,6 +62,9 @@ public class AiBotService {
         } else {
             this.falClient = null;
         }
+
+        this.openAIKey = openAIKey;
+
         String defaultPrompt = "";
         try {
             defaultPrompt = new String(defaultPromptResource.getInputStream().readAllBytes());
@@ -108,8 +114,13 @@ public class AiBotService {
                     .toList());
 
             if (falClient != null) {
-                FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId);
+                final FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId);
                 toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(falAiTools)));
+            }
+
+            if (openAIKey != null) {
+                final OpenAITools openAITools = new OpenAITools(uploadFolder + "/" + chatId);
+                toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(openAITools)));
             }
 
             toolCallbackList.addAll(Arrays.asList(toolCallbacks));
