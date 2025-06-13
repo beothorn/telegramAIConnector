@@ -63,7 +63,7 @@ publishing {
         create<MavenPublication>("gpr") {
             from(components["java"])
             groupId = "com.github.beothorn"
-            artifactId = "telegramAIConnector"
+            artifactId = "telegramaiconnector"
             version = project.version.toString()
 
             pom {
