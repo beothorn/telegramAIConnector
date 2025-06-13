@@ -2,14 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Backoffice</title>
+    <link rel="stylesheet" th:href="@{/style.css}" />
+    <script src="/backoffice.js"></script>
 </head>
 <body>
 <h1>Backoffice</h1>
 <h2>Anonymous prompt</h2>
-<form action="/api/prompt" method="post">
+<form id="promptForm" action="/api/prompt" method="post" data-fetch>
     <textarea name="message" rows="3" cols="80"></textarea><br/>
     <button type="submit">Send</button>
 </form>
+<div id="promptResult"></div>
 <h2>Conversations</h2>
 <ul>
     <li th:each="chatId : ${conversations}">

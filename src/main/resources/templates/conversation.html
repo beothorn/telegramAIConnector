@@ -2,6 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Conversation</title>
+    <link rel="stylesheet" th:href="@{/style.css}" />
+    <script src="/backoffice.js"></script>
 </head>
 <body>
 <h1>Conversation with <span th:text="${chatId}"></span></h1>
@@ -11,15 +13,13 @@
     <tr th:each="m : ${messages}">
         <td th:text="${m.role}"></td>
         <td>
-            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" method="post">
-                <input type="hidden" name="_method" value="put"/>
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-method="PUT">
                 <input type="text" name="content" th:value="${m.content}" size="80"/>
                 <button type="submit">Save</button>
             </form>
         </td>
         <td>
-            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" method="post">
-                <input type="hidden" name="_method" value="delete"/>
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-method="DELETE">
                 <button type="submit">Delete</button>
             </form>
         </td>
@@ -30,7 +30,7 @@
     <a th:href="@{|/backoffice/conversations/${chatId}?page=${nextPage}|}">Next</a>
 </div>
 <h3>Add message</h3>
-<form th:action="@{|/api/conversations/${chatId}/messages|}" method="post">
+<form id="addMessageForm" th:action="@{|/api/conversations/${chatId}/messages|}" data-fetch data-method="POST">
     <select name="role">
         <option value="user">user</option>
         <option value="assistant">assistant</option>
@@ -40,7 +40,7 @@
     <button type="submit">Add</button>
 </form>
 <h2>Profile</h2>
-<form th:action="@{|/api/profile/${chatId}|}" method="post">
+<form id="profileForm" th:action="@{|/api/profile/${chatId}|}" data-fetch data-method="POST">
     <textarea name="profile" rows="5" cols="80" th:text="${profile}"></textarea><br/>
     <button type="submit">Save</button>
 </form>
@@ -48,18 +48,17 @@
 <ul>
     <li th:each="f : ${files}">
         <a th:href="@{|/api/files/${chatId}/${f}|}" th:text="${f}"></a>
-        <form th:action="@{|/api/files/${chatId}/${f}|}" method="post" style="display:inline">
-            <input type="hidden" name="_method" value="delete"/>
+        <form th:action="@{|/api/files/${chatId}/${f}|}" data-fetch data-method="DELETE" style="display:inline">
             <button type="submit">Delete</button>
         </form>
-        <form th:action="@{|/api/files/${chatId}/rename|}" method="post" style="display:inline">
+        <form th:action="@{|/api/files/${chatId}/rename|}" data-fetch data-method="POST" style="display:inline">
             <input type="hidden" name="oldName" th:value="${f}"/>
             <input type="text" name="newName"/>
             <button type="submit">Rename</button>
         </form>
     </li>
 </ul>
-<form th:action="@{|/api/files/${chatId}|}" method="post" enctype="multipart/form-data">
+<form th:action="@{|/api/files/${chatId}|}" data-fetch data-method="POST" enctype="multipart/form-data">
     <input type="file" name="file"/>
     <button type="submit">Upload</button>
 </form>
@@ -71,8 +70,7 @@
         <td th:text="${t.dateTime}"></td>
         <td th:text="${t.command}"></td>
         <td>
-            <form th:action="@{|/api/tasks/${t.key}|}" method="post">
-                <input type="hidden" name="_method" value="delete"/>
+            <form th:action="@{|/api/tasks/${t.key}|}" data-fetch data-method="DELETE">
                 <button type="submit">Delete</button>
             </form>
         </td>

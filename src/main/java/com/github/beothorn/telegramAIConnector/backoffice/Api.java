@@ -158,7 +158,10 @@ public class Api {
     ) {
         Resource r = fileService.download(chatId, name);
         if (r == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(r);
+        return ResponseEntity.ok()
+            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=" + name)
+            .body(r);
     }
 
     @PostMapping("/files/{chatId}")
