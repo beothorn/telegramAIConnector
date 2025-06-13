@@ -64,7 +64,30 @@ publishing {
             from(components["java"])
             groupId = "com.github.beothorn"
             artifactId = "telegramAIConnector"
-            version = project.version.toString() // << use project.version here
+            version = project.version.toString()
+
+            pom {
+                name.set("Telegram AI Connector")
+                description.set("A connector for using AI with Telegram bots.")
+                url.set("https://github.com/beothorn/telegramAIConnector")
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("beothorn")
+                        name.set("Beothorn")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/beothorn/telegramAIConnector.git")
+                    developerConnection.set("scm:git:ssh://github.com/beothorn/telegramAIConnector.git")
+                    url.set("https://github.com/beothorn/telegramAIConnector")
+                }
+            }
         }
     }
     repositories {
