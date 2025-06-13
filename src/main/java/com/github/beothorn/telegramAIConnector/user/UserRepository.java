@@ -58,4 +58,25 @@ public class UserRepository {
             logger.error("Failed to add user with chatId {}", chatId, e);
         }
     }
+
+    public UserInfo getUser(long chatId) {
+        String sql = "SELECT chatId, username, first_name, last_name FROM users WHERE chatId = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, chatId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new UserInfo(
+                        rs.getLong("chatId"),
+                        rs.getString("username"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to fetch user with chatId {}", chatId, e);
+        }
+        return null;
+    }
 }

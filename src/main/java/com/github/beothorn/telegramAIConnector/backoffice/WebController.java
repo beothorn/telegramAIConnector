@@ -4,6 +4,8 @@ import com.github.beothorn.telegramAIConnector.tasks.TaskRepository;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.StoredMessage;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
+import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import com.github.beothorn.telegramAIConnector.backoffice.FileService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,27 +22,34 @@ public class WebController {
     private final MessagesRepository messagesRepository;
     private final UserProfileRepository userProfileRepository;
     private final FileService fileService;
+    private final UserRepository userRepository;
+    private final TelegramAiBot telegramAiBot;
 
     public WebController(
         final TaskRepository taskRepository,
         final MessagesRepository messagesRepository,
         final UserProfileRepository userProfileRepository,
-        final FileService fileService
+        final FileService fileService,
+        final UserRepository userRepository,
+        final TelegramAiBot telegramAiBot
     ) {
         this.taskRepository = taskRepository;
         this.messagesRepository = messagesRepository;
         this.userProfileRepository = userProfileRepository;
         this.fileService = fileService;
+        this.userRepository = userRepository;
+        this.telegramAiBot = telegramAiBot;
     }
 
-    @GetMapping
+    @GetMapping({"", "/"})
     public String index(Model model) {
+        model.addAttribute("botName", telegramAiBot.getBotName());
         model.addAttribute("conversations", messagesRepository.findConversationIds());
         model.addAttribute("tasks", taskRepository.getAll());
         return "backoffice";
     }
 
-    @GetMapping("/conversations/{chatId}")
+    @GetMapping({"/conversations/{chatId}", "/conversations/{chatId}/"})
     public String conversation(
         @PathVariable String chatId,
         @RequestParam(defaultValue = "0") int page,
@@ -48,6 +57,7 @@ public class WebController {
     ) {
         int limit = 50;
         model.addAttribute("chatId", chatId);
+        model.addAttribute("user", userRepository.getUser(Long.parseLong(chatId)));
         model.addAttribute("messages", messagesRepository.getMessages(chatId, limit, page * limit));
         model.addAttribute("prevPage", Math.max(page - 1, 0));
         model.addAttribute("nextPage", page + 1);

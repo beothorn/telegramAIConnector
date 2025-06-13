@@ -6,7 +6,13 @@
     <script src="/backoffice.js"></script>
 </head>
 <body>
-<h1>Conversation with <span th:text="${chatId}"></span></h1>
+<h1>
+    Conversation with
+    <span th:text="${user.username}"></span>
+    (<span th:text="${user.firstName}"></span>
+    <span th:text="${user.lastName}"></span>) -
+    <span th:text="${chatId}"></span>
+</h1>
 <h2>Messages</h2>
 <table>
     <tr><th>Role</th><th>Content</th><th>Actions</th></tr>
@@ -45,19 +51,22 @@
     <button type="submit">Save</button>
 </form>
 <h2>Files</h2>
-<ul>
-    <li th:each="f : ${files}">
-        <a th:href="@{|/api/files/${chatId}/${f}|}" th:text="${f}"></a>
-        <form th:action="@{|/api/files/${chatId}/${f}|}" data-fetch data-method="DELETE" style="display:inline">
-            <button type="submit">Delete</button>
-        </form>
-        <form th:action="@{|/api/files/${chatId}/rename|}" data-fetch data-method="POST" style="display:inline">
-            <input type="hidden" name="oldName" th:value="${f}"/>
-            <input type="text" name="newName"/>
-            <button type="submit">Rename</button>
-        </form>
-    </li>
-</ul>
+<table>
+    <tr><th>Name</th><th>Actions</th></tr>
+    <tr th:each="f : ${files}">
+        <td><a th:href="@{|/api/files/${chatId}/${f}|}" th:text="${f}"></a></td>
+        <td>
+            <form th:action="@{|/api/files/${chatId}/${f}|}" data-fetch data-method="DELETE" style="display:inline">
+                <button type="submit">Delete</button>
+            </form>
+            <form th:action="@{|/api/files/${chatId}/rename|}" data-fetch data-method="POST" style="display:inline">
+                <input type="hidden" name="oldName" th:value="${f}"/>
+                <input type="text" name="newName"/>
+                <button type="submit">Rename</button>
+            </form>
+        </td>
+    </tr>
+</table>
 <form th:action="@{|/api/files/${chatId}|}" data-fetch data-method="POST" enctype="multipart/form-data">
     <input type="file" name="file"/>
     <button type="submit">Upload</button>

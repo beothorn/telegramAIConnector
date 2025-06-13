@@ -6,7 +6,7 @@
     <script src="/backoffice.js"></script>
 </head>
 <body>
-<h1>Backoffice</h1>
+<h1>Backoffice - <span th:text="${botName}"></span></h1>
 <h2>Anonymous prompt</h2>
 <form id="promptForm" action="/api/prompt" method="post" data-fetch>
     <textarea name="message" rows="3" cols="80"></textarea><br/>

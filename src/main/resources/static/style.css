@@ -1,6 +1,34 @@
-body { font-family: Arial, sans-serif; margin: 20px; }
-h1,h2 { color: #333; }
-table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-td, th { border: 1px solid #ccc; padding: 5px; }
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f5f5f5;
+    color: #333;
+}
+h1, h2 {
+    color: #333;
+    margin-top: 0;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: #fff;
+}
+td, th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+th {
+    background-color: #eee;
+}
 form { margin-bottom: 10px; }
-button { padding: 4px 8px; }
+input[type="text"], textarea { padding: 6px; }
+button {
+    padding: 6px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover { background-color: #45a049; }
