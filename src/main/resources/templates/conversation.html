@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Conversation</title>
+</head>
+<body>
+<h1>Conversation with <span th:text="${chatId}"></span></h1>
+<h2>Messages</h2>
+<table>
+    <tr><th>Role</th><th>Content</th><th>Actions</th></tr>
+    <tr th:each="m : ${messages}">
+        <td th:text="${m.role}"></td>
+        <td>
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" method="post">
+                <input type="hidden" name="_method" value="put"/>
+                <input type="text" name="content" th:value="${m.content}" size="80"/>
+                <button type="submit">Save</button>
+            </form>
+        </td>
+        <td>
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" method="post">
+                <input type="hidden" name="_method" value="delete"/>
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+</table>
+<div>
+    <a th:href="@{|/backoffice/conversations/${chatId}?page=${prevPage}|}">Prev</a>
+    <a th:href="@{|/backoffice/conversations/${chatId}?page=${nextPage}|}">Next</a>
+</div>
+<h3>Add message</h3>
+<form th:action="@{|/api/conversations/${chatId}/messages|}" method="post">
+    <select name="role">
+        <option value="user">user</option>
+        <option value="assistant">assistant</option>
+        <option value="system">system</option>
+    </select>
+    <input type="text" name="content" size="80"/>
+    <button type="submit">Add</button>
+</form>
+<h2>Profile</h2>
+<form th:action="@{|/api/profile/${chatId}|}" method="post">
+    <textarea name="profile" rows="5" cols="80" th:text="${profile}"></textarea><br/>
+    <button type="submit">Save</button>
+</form>
+<h2>Files</h2>
+<ul>
+    <li th:each="f : ${files}">
+        <a th:href="@{|/api/files/${chatId}/${f}|}" th:text="${f}"></a>
+        <form th:action="@{|/api/files/${chatId}/${f}|}" method="post" style="display:inline">
+            <input type="hidden" name="_method" value="delete"/>
+            <button type="submit">Delete</button>
+        </form>
+        <form th:action="@{|/api/files/${chatId}/rename|}" method="post" style="display:inline">
+            <input type="hidden" name="oldName" th:value="${f}"/>
+            <input type="text" name="newName"/>
+            <button type="submit">Rename</button>
+        </form>
+    </li>
+</ul>
+<form th:action="@{|/api/files/${chatId}|}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file"/>
+    <button type="submit">Upload</button>
+</form>
+<h2>Tasks</h2>
+<table>
+    <tr><th>Key</th><th>DateTime</th><th>Command</th><th>Actions</th></tr>
+    <tr th:each="t : ${tasks}">
+        <td th:text="${t.key}"></td>
+        <td th:text="${t.dateTime}"></td>
+        <td th:text="${t.command}"></td>
+        <td>
+            <form th:action="@{|/api/tasks/${t.key}|}" method="post">
+                <input type="hidden" name="_method" value="delete"/>
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+</table>
+<a th:href="@{/backoffice}">Back</a>
+</body>
+</html>

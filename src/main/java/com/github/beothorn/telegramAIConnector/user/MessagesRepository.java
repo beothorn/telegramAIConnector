@@ -164,4 +164,63 @@ public class MessagesRepository implements ChatMemoryRepository {
     public void deleteByConversationId(@NotNull final String conversationId) {
         // Never forget
     }
+
+    public List<StoredMessage> getMessages(String chatId, int limit, int offset) {
+        List<StoredMessage> messages = new ArrayList<>();
+        String sql = "SELECT rowid, role, content, timestamp FROM messages WHERE chatId = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, chatId);
+            stmt.setInt(2, limit);
+            stmt.setInt(3, offset);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                messages.add(new StoredMessage(
+                        rs.getLong("rowid"),
+                        rs.getString("role"),
+                        rs.getString("content"),
+                        rs.getString("timestamp")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch paginated messages", e);
+        }
+        return messages;
+    }
+
+    public void insertMessage(String chatId, String role, String content) {
+        String sql = "INSERT INTO messages (chatId, role, content, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, chatId);
+            stmt.setString(2, role);
+            stmt.setString(3, content);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to insert message", e);
+        }
+    }
+
+    public void updateMessage(long id, String content) {
+        String sql = "UPDATE messages SET content = ? WHERE rowid = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, content);
+            stmt.setLong(2, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update message", e);
+        }
+    }
+
+    public void deleteMessage(long id) {
+        String sql = "DELETE FROM messages WHERE rowid = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete message", e);
+        }
+    }
 }

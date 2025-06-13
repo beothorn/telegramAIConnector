@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Backoffice</title>
+</head>
+<body>
+<h1>Backoffice</h1>
+<h2>Anonymous prompt</h2>
+<form action="/api/prompt" method="post">
+    <textarea name="message" rows="3" cols="80"></textarea><br/>
+    <button type="submit">Send</button>
+</form>
+<h2>Conversations</h2>
+<ul>
+    <li th:each="chatId : ${conversations}">
+        <a th:href="@{|/backoffice/conversations/${chatId}|}" th:text="${chatId}"></a>
+    </li>
+</ul>
+
+<h2>Tasks</h2>
+<table>
+    <tr>
+        <th>Key</th>
+        <th>ChatId</th>
+        <th>DateTime</th>
+        <th>Command</th>
+    </tr>
+    <tr th:each="task : ${tasks}">
+        <td th:text="${task.key}"></td>
+        <td th:text="${task.chatId}"></td>
+        <td th:text="${task.dateTime}"></td>
+        <td th:text="${task.command}"></td>
+    </tr>
+</table>
+</body>
+</html>
