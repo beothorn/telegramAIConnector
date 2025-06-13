@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
+    `maven-publish`
 }
 
 group = "com.github.beothorn"
@@ -55,4 +56,22 @@ tasks.named<Test>("test") {
 
 springBoot {
     mainClass.set("com.github.beothorn.telegramAIConnector.Main")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("gpr") {
+            from(components["java"])
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/beothorn/telegramAIConnector")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
