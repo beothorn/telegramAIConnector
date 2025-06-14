@@ -2,6 +2,7 @@ package com.github.beothorn.telegramAIConnector.telegram;
 
 import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
+import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.ToolCallback;
@@ -22,14 +23,17 @@ public class Commands {
     private final TaskScheduler taskScheduler;
     private final ToolCallbackProvider toolCallbackProvider;
     private final String uploadFolder;
+    private final UserProfileRepository userProfileRepository;
 
     public Commands(
             final TaskScheduler taskScheduler,
             final ToolCallbackProvider toolCallbackProvider,
+            final UserProfileRepository userProfileRepository,
             @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.taskScheduler = taskScheduler;
         this.toolCallbackProvider = toolCallbackProvider;
+        this.userProfileRepository = userProfileRepository;
         this.uploadFolder = uploadFolder;
         this.systemTools = new SystemTools();
     }
@@ -107,5 +111,14 @@ public class Commands {
                 .map(ToolCallback::getToolDefinition)
                 .map(t -> t.name() + "\n\t" + t.description() + "\n\t" + t.inputSchema())
                 .collect(Collectors.joining("\n"));
+    }
+
+    public String getProfile(long chatId) {
+        return userProfileRepository.getProfile(chatId).orElse("No profile.");
+    }
+
+    public String setProfile(long chatId, String profile) {
+        userProfileRepository.setProfile(chatId, profile);
+        return "Profile updated.";
     }
 }

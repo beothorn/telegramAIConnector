@@ -48,7 +48,7 @@ public class UserProfileAdvisor implements CallAdvisor {
 
         logger.debug("Chat id is {}", chatClientRequest.context().get("chat_memory_conversation_id"));
 
-        Long chatId = Long.parseLong((String) chatClientRequest.context().get("chat_memory_conversation_id"));
+        final long chatId = Long.parseLong((String) chatClientRequest.context().get("chat_memory_conversation_id"));
 
         // TODO: given the current user profile and the last message, ask the AI to
         // update the profile if we found the user skill level in a subject
@@ -56,10 +56,10 @@ public class UserProfileAdvisor implements CallAdvisor {
         // is a nurse (so we can use professional medical language) and so on
         // also the opposite, ex does not speak english (so avoid it)
 
-        String userProfile = userProfileRepository.getProfile(chatId).orElse("");
-        String profilePrompt = String.format(prompt, userProfile, currentUserMessage.getText());
+        final String userProfile = userProfileRepository.getProfile(chatId).orElse("");
+        final String profilePrompt = String.format(prompt, userProfile, currentUserMessage.getText());
 
-        String newProfile = chatModel.call(profilePrompt);
+        final String newProfile = chatModel.call(profilePrompt);
         userProfileRepository.setProfile(chatId, newProfile);
         logger.debug("Profile updated to '{}'", newProfile);
 
