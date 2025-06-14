@@ -42,6 +42,10 @@ Sends the file from the uploaded files
 /send file
 List the scheduled tasks
 /listTasks
+Show the saved user profile
+/profile
+Replace the current profile
+/newProfile profile text
 ```
 
 # HTTP messages (optional)

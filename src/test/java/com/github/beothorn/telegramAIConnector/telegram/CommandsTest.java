@@ -2,6 +2,7 @@ package com.github.beothorn.telegramAIConnector.telegram;
 
 import org.junit.jupiter.api.Test;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
+import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.definition.DefaultToolDefinition;
@@ -21,7 +22,11 @@ public class CommandsTest {
         ToolCallbackProvider provider = mock(ToolCallbackProvider.class);
         when(provider.getToolCallbacks()).thenReturn(new ToolCallback[]{tool1, tool2});
 
-        Commands commands = new Commands(mock(TaskScheduler.class), provider, "folder");
+        Commands commands = new Commands(
+                mock(TaskScheduler.class),
+                provider,
+                mock(UserProfileRepository.class),
+                "folder");
         String result = commands.listTools();
 
         assertTrue(result.contains("t1"));

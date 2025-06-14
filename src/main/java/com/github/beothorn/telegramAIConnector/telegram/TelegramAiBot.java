@@ -434,6 +434,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /download file
                     /listTasks
                     /listTools
+                    /profile
+                    /newProfile profile text
                     /logout
                     /changePassword newPass
                     /doing""";
@@ -476,6 +478,18 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
         if (command.equalsIgnoreCase("listTools")) {
             sendMessage(chatId, commands.listTools());
+            return;
+        }
+        if (command.equalsIgnoreCase("profile")) {
+            sendMessage(chatId, commands.getProfile(chatId));
+            return;
+        }
+        if (command.equalsIgnoreCase("newProfile")) {
+            if (Strings.isNotBlank(args)) {
+                sendMessage(chatId, commands.setProfile(chatId, args));
+            } else {
+                sendMessage(chatId, "Profile can't be empty.");
+            }
             return;
         }
         if (command.equalsIgnoreCase("doing")) {
