@@ -85,6 +85,92 @@ public class FalAiTools {
         }
     }
 
+    @Tool(description = "AI to generate images from a text prompt.")
+    public String generateImage(
+        @ToolParam(description = "Instruction describing the desired image") String prompt,
+        @ToolParam(description = "Name of the output image to be created") String outputFileName
+    ) {
+        try {
+            File parent = new File(uploadFolder);
+            File dest = new File(parent, outputFileName);
+
+            if (TelegramAIFileUtils.isNotInParentFolder(parent, dest)) {
+                return "Invalid file name.";
+            }
+
+            Map<String, Object> input = Map.of(
+                    "prompt", prompt,
+                    "safety_tolerance", "5" // Allow most permissive generation
+            );
+            Output<JsonObject> result = falClient.subscribe(
+                "fal-ai/fast-sdxl",
+                SubscribeOptions.<JsonObject>builder()
+                    .input(input)
+                    .logs(false)
+                    .resultType(JsonObject.class)
+                    .onQueueUpdate(u -> {
+                        if (u instanceof QueueStatus.InProgress progress) {
+                            // ignore logs
+                        }
+                    })
+                    .build()
+            );
+            String url = result.getData().getAsJsonArray("images").get(0).getAsJsonObject().get("url").getAsString();
+            try (InputStream in = new URL(url).openStream()) {
+                Files.createDirectories(parent.toPath());
+                Files.copy(in, dest.toPath());
+            }
+            return "I created a new file " + outputFileName + " on your upload folder.";
+        } catch (Exception e) {
+            return "Failed to generate image: " + e.getMessage();
+        }
+    }
+
+    @Tool(description = "Describe the content of an image and transcribe any text found on it.")
+    public String describeImage(
+        @ToolParam(description = "Name of the image located in the Telegram upload folder") String fileName
+    ) {
+        try {
+            File parent = new File(uploadFolder);
+            File source = new File(parent, fileName);
+
+            if (TelegramAIFileUtils.isNotInParentFolder(parent, source)) {
+                return "Invalid file name.";
+            }
+            if (!source.isFile()) {
+                return "File '" + fileName + "' not found.";
+            }
+
+            String dataUri = toDataUri(source.toPath());
+            Map<String, Object> input = Map.of(
+                    "image_url", dataUri,
+                    "prompt", "Describe the image and transcribe any text you find"
+            );
+            Output<JsonObject> result = falClient.subscribe(
+                "fal-ai/llava-1.5-7b",
+                SubscribeOptions.<JsonObject>builder()
+                    .input(input)
+                    .logs(false)
+                    .resultType(JsonObject.class)
+                    .onQueueUpdate(u -> {
+                        if (u instanceof QueueStatus.InProgress progress) {
+                            // ignore logs
+                        }
+                    })
+                    .build()
+            );
+            String description = result.getData().get("text").getAsString();
+
+            String ocr = ocrWithTesseract(source.toPath());
+            if (!ocr.isBlank()) {
+                description += "\nText: " + ocr;
+            }
+            return description;
+        } catch (Exception e) {
+            return "Failed to analyze image: " + e.getMessage();
+        }
+    }
+
     private static Path toMp3(Path source) throws Exception {
         Path mp3 = Files.createTempFile("telegram", ".mp3");
         Process process = new ProcessBuilder(
@@ -95,6 +181,17 @@ public class FalAiTools {
             throw new RuntimeException("ffmpeg failed: " + logs);
         }
         return mp3;
+    }
+
+    private static String ocrWithTesseract(Path image) throws Exception {
+        Process process = new ProcessBuilder(
+                "tesseract", image.toString(), "-", "-l", "eng"
+        ).redirectErrorStream(true).start();
+        if (!process.waitFor(30, TimeUnit.SECONDS)) {
+            process.destroy();
+            throw new RuntimeException("tesseract timed out");
+        }
+        return new String(process.getInputStream().readAllBytes()).trim();
     }
 
     @Tool(description = "Transcribes an audio file.")
