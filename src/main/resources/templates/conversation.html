@@ -18,12 +18,13 @@
 <h2>Messages</h2>
 <table id="messagesTable" th:data-chatid="${chatId}" th:data-page="${page}">
     <thead>
-    <tr><th>Role</th><th>Content</th><th class="actions">Save</th><th class="actions">Delete</th></tr>
+    <tr><th>Role</th><th>Content</th><th>Time</th><th class="actions">Save</th><th class="actions">Delete</th></tr>
     </thead>
     <tbody>
     <tr th:each="m : ${messages}" th:data-id="${m.id}">
         <td th:text="${m.role}"></td>
         <td><textarea name="content" rows="2" th:text="${m.content}"></textarea></td>
+        <td th:text="${m.timestamp}"></td>
         <td class="actions">
             <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-update="messages" data-method="PUT">
                 <button type="submit">Save</button>

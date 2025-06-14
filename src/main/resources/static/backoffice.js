@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.innerHTML = `
         <td>${m.role}</td>
         <td><textarea rows="2" name="content">${m.content}</textarea></td>
+        <td>${m.timestamp}</td>
         <td>
           <form action="/api/conversations/${chatId}/messages/${m.id}" data-fetch data-update="messages" data-method="PUT">
             <button type="submit">Save</button>
