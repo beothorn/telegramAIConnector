@@ -64,3 +64,4 @@ Posting to localhost:9996/systemMessage will send a system message prompt.
 - Upload and download files
 - Rename uploaded files
 - Get the current time
+- Manage conversations, tasks, profiles and files at /backoffice with a nicer web interface

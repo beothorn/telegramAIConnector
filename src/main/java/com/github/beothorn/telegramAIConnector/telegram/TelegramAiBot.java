@@ -52,6 +52,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final Commands commands;
     private final String uploadFolder;
     private final ProcessingStatus processingStatus;
+    private String botName = "";
     private final ExecutorService executor;
     private final ScheduledExecutorService typingScheduler;
 
@@ -80,7 +81,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
         try {
             final User userBot = telegramClient.execute(new GetMe());
-            logger.info("¨Bot username: '" + userBot.getUserName() + "'");
+            this.botName = userBot.getUserName();
+            logger.info("¨Bot username: '{}'", botName);
         } catch (TelegramApiException e) {
             logger.error("Could not get bot info." ,e);
         }
@@ -613,6 +615,10 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             chatId,
             uploadFolder
         );
+    }
+
+    public String getBotName() {
+        return botName;
     }
 
     @PreDestroy

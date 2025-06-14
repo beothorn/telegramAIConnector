@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Backoffice</title>
+    <link rel="stylesheet" th:href="@{/style.css}" />
+    <script src="/backoffice.js"></script>
+</head>
+<body>
+<h1>Backoffice - <span th:text="${botName}"></span></h1>
+<div class="section">
+<h2>Anonymous prompt</h2>
+<form id="promptForm" action="/api/prompt" method="post" data-fetch class="wide-form">
+    <textarea name="message" rows="3"></textarea>
+    <button type="submit">Send</button>
+</form>
+<div id="promptResult"></div>
+</div>
+
+<div class="section">
+<h2>Conversations</h2>
+<table>
+    <thead><tr><th>Chat Id</th></tr></thead>
+    <tbody>
+    <tr th:each="chatId : ${conversations}">
+        <td><a th:href="@{|/backoffice/conversations/${chatId}|}" th:text="${chatId}"></a></td>
+    </tr>
+    </tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>Tasks</h2>
+<table>
+    <tr>
+        <th>Key</th>
+        <th>ChatId</th>
+        <th>DateTime</th>
+        <th>Command</th>
+    </tr>
+    <tr th:each="task : ${tasks}">
+        <td th:text="${task.key}"></td>
+        <td th:text="${task.chatId}"></td>
+        <td th:text="${task.dateTime}"></td>
+        <td th:text="${task.command}"></td>
+    </tr>
+</table>
+</div>
+</body>
+</html>

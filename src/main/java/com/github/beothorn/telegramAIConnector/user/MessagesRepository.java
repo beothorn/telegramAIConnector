@@ -41,7 +41,7 @@ public class MessagesRepository implements ChatMemoryRepository {
                     chatId TEXT NOT NULL,
                     role TEXT NOT NULL,
                     content TEXT NOT NULL,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                    timestamp INTEGER DEFAULT (strftime('%s','now') * 1000)
                 )
             """);
 
@@ -151,7 +151,7 @@ public class MessagesRepository implements ChatMemoryRepository {
             stmt.setString(1, conversationId);
             stmt.setString(2, message.getMessageType().getValue());
             stmt.setString(3, message.getText());
-            stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+            stmt.setLong(4, System.currentTimeMillis());
 
             stmt.executeUpdate();
 
@@ -163,5 +163,69 @@ public class MessagesRepository implements ChatMemoryRepository {
     @Override
     public void deleteByConversationId(@NotNull final String conversationId) {
         // Never forget
+    }
+
+    public List<StoredMessage> getMessages(String chatId, int limit, int offset) {
+        List<StoredMessage> messages = new ArrayList<>();
+        String sql = "SELECT rowid, role, content, timestamp FROM messages WHERE chatId = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, chatId);
+            stmt.setInt(2, limit);
+            stmt.setInt(3, offset);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                long ts = rs.getLong("timestamp");
+                String formatted = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(java.time.ZoneId.systemDefault())
+                        .format(java.time.Instant.ofEpochMilli(ts));
+                messages.add(new StoredMessage(
+                        rs.getLong("rowid"),
+                        rs.getString("role"),
+                        rs.getString("content"),
+                        formatted
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch paginated messages", e);
+        }
+        return messages;
+    }
+
+    public void insertMessage(String chatId, String role, String content) {
+        String sql = "INSERT INTO messages (chatId, role, content, timestamp) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, chatId);
+            stmt.setString(2, role);
+            stmt.setString(3, content);
+            stmt.setLong(4, System.currentTimeMillis());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to insert message", e);
+        }
+    }
+
+    public void updateMessage(long id, String content) {
+        String sql = "UPDATE messages SET content = ? WHERE rowid = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, content);
+            stmt.setLong(2, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update message", e);
+        }
+    }
+
+    public void deleteMessage(long id) {
+        String sql = "DELETE FROM messages WHERE rowid = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete message", e);
+        }
     }
 }

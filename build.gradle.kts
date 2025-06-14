@@ -33,6 +33,7 @@ dependencies {
     implementation("org.springframework.ai:spring-ai-starter-model-openai")
     implementation("org.springframework.ai:spring-ai-starter-mcp-client")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.telegram:telegrambots-longpolling:8.0.0")
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")

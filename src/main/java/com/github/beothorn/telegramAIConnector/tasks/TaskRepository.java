@@ -53,6 +53,27 @@ public class TaskRepository {
         return tasks;
     }
 
+    public List<TaskCommand> findByChatId(long chatId) {
+        List<TaskCommand> tasks = new ArrayList<>();
+        String sql = "SELECT key, chatId, dateTime, command FROM tasks WHERE chatId = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, chatId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                tasks.add(new TaskCommand(
+                        rs.getString("key"),
+                        rs.getLong("chatId"),
+                        rs.getString("dateTime"),
+                        rs.getString("command")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch tasks", e);
+        }
+        return tasks;
+    }
+
     public void addTask(TaskCommand taskCommand) {
         String sql = "INSERT OR REPLACE INTO tasks (key, chatId, dateTime, command) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);

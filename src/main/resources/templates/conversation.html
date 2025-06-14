@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Conversation</title>
+    <link rel="stylesheet" th:href="@{/style.css}" />
+    <script src="/backoffice.js"></script>
+</head>
+<body>
+<h1>
+    Conversation with
+    <span th:text="${user.username}"></span>
+    (<span th:text="${user.firstName}"></span>
+    <span th:text="${user.lastName}"></span>) -
+    <span th:text="${chatId}"></span>
+</h1>
+
+<div class="section">
+<h2>Messages</h2>
+<table id="messagesTable" th:data-chatid="${chatId}" th:data-page="${page}">
+    <thead>
+    <tr><th>Role</th><th>Content</th><th>Time</th><th class="actions">Save</th><th class="actions">Delete</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="m : ${messages}" th:data-id="${m.id}">
+        <td th:text="${m.role}"></td>
+        <td><textarea name="content" rows="2" th:text="${m.content}"></textarea></td>
+        <td th:text="${m.timestamp}"></td>
+        <td class="actions">
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-update="messages" data-method="PUT">
+                <button type="submit">Save</button>
+            </form>
+        </td>
+        <td class="actions">
+            <form th:action="@{|/api/conversations/${chatId}/messages/${m.id}|}" data-fetch data-update="messages" data-method="DELETE">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<div>
+    <a th:href="@{|/backoffice/conversations/${chatId}?page=${prevPage}|}">Prev</a>
+    <a th:href="@{|/backoffice/conversations/${chatId}?page=${nextPage}|}">Next</a>
+</div>
+<h3>Add message</h3>
+<form id="addMessageForm" th:action="@{|/api/conversations/${chatId}/messages|}" data-fetch data-update="messages" data-method="POST" class="wide-form">
+    <select name="role">
+        <option value="user">user</option>
+        <option value="assistant">assistant</option>
+        <option value="system">system</option>
+    </select>
+    <input type="text" name="content"/>
+    <button type="submit">Add</button>
+</form>
+</div>
+
+<div class="section">
+<h2>Profile</h2>
+<form id="profileForm" th:action="@{|/api/profile/${chatId}|}" data-fetch data-method="POST" class="wide-form">
+    <textarea name="profile" rows="5" th:text="${profile}"></textarea>
+    <button type="submit">Save</button>
+</form>
+</div>
+
+<div class="section">
+<h2>Files</h2>
+<table>
+    <tr><th>Name</th><th class="actions">Download</th><th class="actions">Delete</th><th>Rename</th></tr>
+    <tr th:each="f : ${files}">
+        <td th:text="${f}"></td>
+        <td class="actions"><a th:href="@{|/api/files/${chatId}/${f}|}">Download</a></td>
+        <td class="actions">
+            <form th:action="@{|/api/files/${chatId}/${f}|}" data-fetch data-method="DELETE">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+        <td>
+            <form th:action="@{|/api/files/${chatId}/rename|}" data-fetch data-method="POST" class="rename-form">
+                <input type="hidden" name="oldName" th:value="${f}"/>
+                <input type="text" name="newName"/>
+                <button type="submit">Rename</button>
+            </form>
+        </td>
+    </tr>
+</table>
+<form th:action="@{|/api/files/${chatId}|}" data-fetch data-method="POST" enctype="multipart/form-data" class="upload-form">
+    <input type="file" name="file"/>
+    <button type="submit">Upload</button>
+</form>
+</div>
+
+<div class="section">
+<h2>Tasks</h2>
+<table>
+    <tr><th>Key</th><th>DateTime</th><th>Command</th><th class="actions">Actions</th></tr>
+    <tr th:each="t : ${tasks}">
+        <td th:text="${t.key}"></td>
+        <td th:text="${t.dateTime}"></td>
+        <td th:text="${t.command}"></td>
+        <td class="actions">
+            <form th:action="@{|/api/tasks/${t.key}|}" data-fetch data-method="DELETE">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+</table>
+</div>
+
+<a th:href="@{/backoffice}">Back</a>
+</body>
+</html>

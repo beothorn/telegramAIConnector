@@ -1,0 +1,92 @@
+:root {
+    --bg-color: #f3f3f3;
+    --text-color: #333;
+    --accent-color: #0078d4;
+    --table-bg: #fff;
+    --table-header-bg: #e6e6e6;
+    --border-color: #ccc;
+    --accent-hover: #005a9e;
+    --link-color: #0078d4;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+h1, h2 {
+    color: var(--text-color);
+    margin-top: 0;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: var(--table-bg);
+    color: var(--text-color);
+}
+td, th {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+}
+th {
+    background-color: var(--table-header-bg);
+}
+a {
+    color: var(--link-color);
+}
+a:visited {
+    color: var(--link-color);
+}
+form { margin-bottom: 10px; }
+.wide-form textarea,
+.wide-form input[type="text"],
+textarea,
+input[type="text"] {
+    padding: 6px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+button {
+    padding: 6px 12px;
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover { background-color: var(--accent-hover); }
+
+.section {
+    background: var(--table-bg);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: center;
+}
+
+#promptForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#promptForm button {
+    align-self: flex-end;
+}
+
+.rename-form {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
