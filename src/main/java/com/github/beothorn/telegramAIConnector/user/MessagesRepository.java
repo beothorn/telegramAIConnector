@@ -41,7 +41,7 @@ public class MessagesRepository implements ChatMemoryRepository {
                     chatId TEXT NOT NULL,
                     role TEXT NOT NULL,
                     content TEXT NOT NULL,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                    timestamp INTEGER DEFAULT (strftime('%s','now') * 1000)
                 )
             """);
 
@@ -151,7 +151,7 @@ public class MessagesRepository implements ChatMemoryRepository {
             stmt.setString(1, conversationId);
             stmt.setString(2, message.getMessageType().getValue());
             stmt.setString(3, message.getText());
-            stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+            stmt.setLong(4, System.currentTimeMillis());
 
             stmt.executeUpdate();
 
@@ -175,11 +175,15 @@ public class MessagesRepository implements ChatMemoryRepository {
             stmt.setInt(3, offset);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
+                long ts = rs.getLong("timestamp");
+                String formatted = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(java.time.ZoneId.systemDefault())
+                        .format(java.time.Instant.ofEpochMilli(ts));
                 messages.add(new StoredMessage(
                         rs.getLong("rowid"),
                         rs.getString("role"),
                         rs.getString("content"),
-                        rs.getString("timestamp")
+                        formatted
                 ));
             }
         } catch (SQLException e) {
@@ -189,12 +193,13 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     public void insertMessage(String chatId, String role, String content) {
-        String sql = "INSERT INTO messages (chatId, role, content, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+        String sql = "INSERT INTO messages (chatId, role, content, timestamp) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, chatId);
             stmt.setString(2, role);
             stmt.setString(3, content);
+            stmt.setLong(4, System.currentTimeMillis());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to insert message", e);
