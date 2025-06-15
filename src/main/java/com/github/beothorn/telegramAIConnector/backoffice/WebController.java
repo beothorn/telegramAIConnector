@@ -25,6 +25,16 @@ public class WebController {
     private final UserRepository userRepository;
     private final TelegramAiBot telegramAiBot;
 
+    /**
+     * Creates the controller with required dependencies.
+     *
+     * @param taskRepository       repository for scheduled tasks
+     * @param messagesRepository   repository for chat messages
+     * @param userProfileRepository repository for user profiles
+     * @param fileService          service to access uploaded files
+     * @param userRepository       repository of users
+     * @param telegramAiBot        bot instance used for UI information
+     */
     public WebController(
         final TaskRepository taskRepository,
         final MessagesRepository messagesRepository,
@@ -43,6 +53,9 @@ public class WebController {
 
     /**
      * Displays the backoffice index page.
+     *
+     * @param model UI model to populate
+     * @return view name
      */
     @GetMapping({"", "/"})
     public String index(Model model) {
@@ -54,6 +67,11 @@ public class WebController {
 
     /**
      * Shows a single conversation page.
+     *
+     * @param chatId conversation identifier
+     * @param page   page number for pagination
+     * @param model  UI model to populate
+     * @return view name
      */
     @GetMapping({"/conversations/{chatId}", "/conversations/{chatId}/"})
     public String conversation(

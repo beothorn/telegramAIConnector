@@ -14,6 +14,10 @@ public class ProcessingStatus {
 
     /**
      * Registers a new running asynchronous task for a chat.
+     *
+     * @param chatId      chat identifier
+     * @param future      running future
+     * @param description human readable description
      */
     public void register(
         final Long chatId,
@@ -26,6 +30,9 @@ public class ProcessingStatus {
 
     /**
      * Removes a finished task from the registry.
+     *
+     * @param chatId chat identifier
+     * @param future future to remove
      */
     public void unregister(
         final Long chatId,
@@ -43,6 +50,9 @@ public class ProcessingStatus {
 
     /**
      * Returns a human readable description of running tasks for a chat.
+     *
+     * @param chatId chat identifier
+     * @return description of running tasks or a default message
      */
     public String status(
         final Long chatId

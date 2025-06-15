@@ -51,6 +51,8 @@ public class TaskScheduler {
 
     /**
      * Restores tasks persisted in the database.
+     *
+     * @param telegramAiBot bot instance used to execute restored tasks
      */
     public void restoreTasksFromDatabase(
         final TelegramAiBot telegramAiBot
@@ -67,6 +69,11 @@ public class TaskScheduler {
 
     /**
      * Schedules a new task for execution.
+     *
+     * @param telegramAiBot bot instance used to execute the command
+     * @param chatId        chat identifier owning the task
+     * @param command       command to execute
+     * @param dateTime      when the command should be executed
      */
     public synchronized void schedule(
         final TelegramAiBot telegramAiBot,
@@ -124,6 +131,10 @@ public class TaskScheduler {
 
     /**
      * Cancels a scheduled task.
+     *
+     * @param chatId chat identifier
+     * @param key    task key to cancel
+     * @return the removed task if it existed
      */
     public synchronized Optional<TaskCommand> cancel(Long chatId, String key) {
         Map<String, ScheduledWithTime> tasksForChatId = tasksPerChat.getOrDefault(chatId, new HashMap<>());
@@ -146,6 +157,9 @@ public class TaskScheduler {
 
     /**
      * Lists human readable descriptions for the scheduled tasks of a chat.
+     *
+     * @param chatId chat identifier
+     * @return list of scheduled task descriptions separated by newlines
      */
     public synchronized String listScheduledKeys(Long chatId) {
         Map<String, ScheduledWithTime> tasksForChatId = tasksPerChat.getOrDefault(chatId, new HashMap<>());

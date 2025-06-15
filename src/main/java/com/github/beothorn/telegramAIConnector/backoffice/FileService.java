@@ -18,6 +18,8 @@ public class FileService {
 
     /**
      * Creates a new service using the given upload folder.
+     *
+     * @param uploadFolder base folder for uploaded files
      */
     public FileService(@Value("${telegramIAConnector.uploadFolder}") String uploadFolder) {
         this.uploadFolder = uploadFolder;
@@ -29,6 +31,9 @@ public class FileService {
 
     /**
      * Lists files uploaded by a chat.
+     *
+     * @param chatId chat identifier
+     * @return list of file names
      */
     public List<String> list(Long chatId) {
         File dir = baseDir(chatId);
@@ -41,6 +46,10 @@ public class FileService {
 
     /**
      * Returns a resource for the requested file or {@code null} if invalid.
+     *
+     * @param chatId chat identifier
+     * @param name   file name
+     * @return file resource or {@code null}
      */
     public Resource download(Long chatId, String name) {
         File dir = baseDir(chatId);
@@ -53,6 +62,9 @@ public class FileService {
 
     /**
      * Deletes a file from the chat folder.
+     *
+     * @param chatId chat identifier
+     * @param name   file name to delete
      */
     public void delete(Long chatId, String name) {
         File dir = baseDir(chatId);
@@ -63,6 +75,11 @@ public class FileService {
 
     /**
      * Renames a file inside the chat folder.
+     *
+     * @param chatId  chat identifier
+     * @param oldName current file name
+     * @param newName new file name
+     * @throws IOException if renaming fails or names are invalid
      */
     public void rename(Long chatId, String oldName, String newName) throws IOException {
         File dir = baseDir(chatId);
@@ -80,6 +97,10 @@ public class FileService {
 
     /**
      * Saves an uploaded multipart file in the chat folder.
+     *
+     * @param chatId chat identifier
+     * @param file   uploaded multipart file
+     * @throws IOException if saving fails
      */
     public void upload(Long chatId, MultipartFile file) throws IOException {
         File dir = baseDir(chatId);

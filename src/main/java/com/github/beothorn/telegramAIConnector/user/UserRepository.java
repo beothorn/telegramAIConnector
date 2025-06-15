@@ -15,6 +15,8 @@ public class UserRepository {
 
     /**
      * Initializes the user table in the given database.
+     *
+     * @param dbUrl JDBC connection string
      */
     public void initDatabase(final String dbUrl) {
         this.dbUrl = dbUrl;
@@ -37,6 +39,11 @@ public class UserRepository {
 
     /**
      * Inserts or updates a user entry.
+     *
+     * @param chatId    chat identifier
+     * @param username  user nickname
+     * @param firstName first name
+     * @param lastName  last name
      */
     public void createOrUpdateUser(
         final long chatId,
@@ -67,6 +74,9 @@ public class UserRepository {
 
     /**
      * Retrieves a user by chat id.
+     *
+     * @param chatId chat identifier
+     * @return stored user info or {@code null}
      */
     public UserInfo getUser(long chatId) {
         String sql = "SELECT chatId, username, first_name, last_name FROM users WHERE chatId = ?";

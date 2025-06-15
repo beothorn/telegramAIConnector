@@ -11,6 +11,9 @@ public class InstantUtils {
 
     /**
      * Parses a string formatted as {@link #DATE_TIME_FORMAT} to an {@link Instant}.
+     *
+     * @param dateTimeStr date and time string
+     * @return parsed instant
      */
     public static Instant parseToInstant(String dateTimeStr) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
@@ -20,6 +23,9 @@ public class InstantUtils {
 
     /**
      * Formats the given instant using {@link #DATE_TIME_FORMAT}.
+     *
+     * @param instant instant to format
+     * @return formatted string
      */
     public static String formatFromInstant(Instant instant) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
@@ -29,6 +35,8 @@ public class InstantUtils {
 
     /**
      * Returns the current time formatted with {@link #DATE_TIME_FORMAT}.
+     *
+     * @return current time formatted
      */
     public static String currentTime() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
@@ -38,6 +46,8 @@ public class InstantUtils {
 
     /**
      * Returns the current time with seconds precision.
+     *
+     * @return current time including seconds
      */
     public static String currentTimeSeconds() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd_HH:mm_ss");

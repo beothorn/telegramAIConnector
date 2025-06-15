@@ -27,6 +27,16 @@ public class Api {
     private final UserProfileRepository userProfileRepository;
     private final FileService fileService;
 
+    /**
+     * Creates a REST API with required dependencies.
+     *
+     * @param telegramAiBot         bot instance
+     * @param taskRepository        repository for tasks
+     * @param messagesRepository    repository for messages
+     * @param authentication        authentication service
+     * @param userProfileRepository repository for user profiles
+     * @param fileService           file service
+     */
     public Api(
         final TelegramAiBot telegramAiBot,
         final TaskRepository taskRepository,
@@ -45,6 +55,11 @@ public class Api {
 
     /**
      * Sends a system message to a specific chat.
+     *
+     * @param chatId  target chat identifier
+     * @param message system message
+     * @return AI response
+     * @throws TelegramApiException if sending fails
      */
     @PostMapping("/systemMessage")
     public String systemMessage(
@@ -56,6 +71,10 @@ public class Api {
 
     /**
      * Sends an anonymous prompt to the bot.
+     *
+     * @param message prompt text
+     * @return AI response
+     * @throws TelegramApiException if sending fails
      */
     @PostMapping("/prompt")
     public String prompt(
@@ -66,6 +85,8 @@ public class Api {
 
     /**
      * Returns all scheduled tasks.
+     *
+     * @return list of tasks
      */
     @GetMapping("/tasks")
     public List<TaskCommand> getAllTasks() {
@@ -74,6 +95,8 @@ public class Api {
 
     /**
      * Adds a new scheduled task.
+     *
+     * @param taskCommand task to schedule
      */
     @PostMapping("/tasks")
     public void addTask(@RequestBody TaskCommand taskCommand) {
@@ -82,6 +105,9 @@ public class Api {
 
     /**
      * Deletes a task.
+     *
+     * @param key task identifier
+     * @return {@code true} if task was removed
      */
     @DeleteMapping("/tasks/{key}")
     public boolean deleteTask(@PathVariable String key) {
@@ -90,6 +116,8 @@ public class Api {
 
     /**
      * Lists known conversation ids.
+     *
+     * @return list of conversation identifiers
      */
     @GetMapping("/conversations")
     public List<String> getConversationIds() {
@@ -98,6 +126,9 @@ public class Api {
 
     /**
      * Returns all messages of a conversation.
+     *
+     * @param chatId conversation identifier
+     * @return messages stored for that conversation
      */
     @GetMapping("/conversations/{chatId}")
     public List<Message> getConversationMessages(@PathVariable String chatId) {
@@ -106,6 +137,8 @@ public class Api {
 
     /**
      * Deletes a conversation.
+     *
+     * @param chatId conversation identifier
      */
     @DeleteMapping("/conversations/{chatId}")
     public void deleteConversation(@PathVariable String chatId) {
@@ -114,6 +147,9 @@ public class Api {
 
     /**
      * Sets a password for a chat.
+     *
+     * @param chatId  chat identifier
+     * @param password new password
      */
     @PostMapping("/conversations/{chatId}/auth")
     public void setPassword(
@@ -125,6 +161,10 @@ public class Api {
 
     /**
      * Returns paginated messages for a conversation.
+     *
+     * @param chatId conversation identifier
+     * @param page   zero-based page number
+     * @return list of stored messages
      */
     @GetMapping("/conversations/{chatId}/messages")
     public List<StoredMessage> paginatedMessages(
@@ -138,6 +178,10 @@ public class Api {
 
     /**
      * Adds a new message to a conversation.
+     *
+     * @param chatId chat identifier
+     * @param role   role of the message
+     * @param content message content
      */
     @PostMapping("/conversations/{chatId}/messages")
     public void addMessage(
@@ -150,6 +194,9 @@ public class Api {
 
     /**
      * Updates a stored message.
+     *
+     * @param id      message identifier
+     * @param content new content
      */
     @PutMapping("/conversations/{chatId}/messages/{id}")
     public void updateMessage(
@@ -161,6 +208,8 @@ public class Api {
 
     /**
      * Deletes a stored message.
+     *
+     * @param id message identifier
      */
     @DeleteMapping("/conversations/{chatId}/messages/{id}")
     public void deleteMessage(@PathVariable long id) {
@@ -169,6 +218,9 @@ public class Api {
 
     /**
      * Retrieves a user profile.
+     *
+     * @param chatId chat identifier
+     * @return stored profile or empty string
      */
     @GetMapping("/profile/{chatId}")
     public String getProfile(@PathVariable long chatId) {
@@ -177,6 +229,9 @@ public class Api {
 
     /**
      * Sets a user profile.
+     *
+     * @param chatId  chat identifier
+     * @param profile new profile text
      */
     @PostMapping("/profile/{chatId}")
     public void setProfile(
@@ -188,6 +243,9 @@ public class Api {
 
     /**
      * Lists tasks for a chat.
+     *
+     * @param chatId chat identifier
+     * @return tasks belonging to the chat
      */
     @GetMapping("/tasks/{chatId}")
     public List<TaskCommand> tasksForChat(@PathVariable long chatId) {
@@ -196,6 +254,9 @@ public class Api {
 
     /**
      * Lists uploaded files for a chat.
+     *
+     * @param chatId chat identifier
+     * @return list of files
      */
     @GetMapping("/files/{chatId}")
     public List<String> listFiles(@PathVariable long chatId) {
@@ -204,6 +265,10 @@ public class Api {
 
     /**
      * Downloads an uploaded file.
+     *
+     * @param chatId chat identifier
+     * @param name   file name
+     * @return HTTP response with the file or 404 if not found
      */
     @GetMapping("/files/{chatId}/{name}")
     public ResponseEntity<Resource> download(
@@ -220,6 +285,10 @@ public class Api {
 
     /**
      * Uploads a file to the chat folder.
+     *
+     * @param chatId chat identifier
+     * @param file   multipart file to save
+     * @throws Exception if upload fails
      */
     @PostMapping("/files/{chatId}")
     public void upload(
@@ -231,6 +300,11 @@ public class Api {
 
     /**
      * Renames an uploaded file.
+     *
+     * @param chatId  chat identifier
+     * @param oldName old file name
+     * @param newName new file name
+     * @throws Exception if renaming fails
      */
     @PostMapping("/files/{chatId}/rename")
     public void rename(
@@ -243,6 +317,9 @@ public class Api {
 
     /**
      * Deletes a file from the chat folder.
+     *
+     * @param chatId chat identifier
+     * @param name   file name to delete
      */
     @DeleteMapping("/files/{chatId}/{name}")
     public void deleteFile(
