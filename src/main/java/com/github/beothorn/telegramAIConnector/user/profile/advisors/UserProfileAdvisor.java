@@ -24,6 +24,9 @@ public class UserProfileAdvisor implements CallAdvisor {
     private final String prompt;
     private final Logger logger = LoggerFactory.getLogger(UserProfileAdvisor.class);
 
+    /**
+     * Creates the advisor using the given chat model and repository.
+     */
     public UserProfileAdvisor(
         final ChatModel chatModel,
         final UserProfileRepository userProfileRepository,
@@ -39,6 +42,9 @@ public class UserProfileAdvisor implements CallAdvisor {
     }
 
     @Override
+    /**
+     * Updates the user profile using the last message before invoking the chain.
+     */
     public ChatClientResponse adviseCall(
         final ChatClientRequest chatClientRequest,
         final CallAdvisorChain callAdvisorChain
@@ -74,11 +80,17 @@ public class UserProfileAdvisor implements CallAdvisor {
     }
 
     @Override
+    /**
+     * Returns the advisor name.
+     */
     public String getName() {
         return "UserProfileAdvisor";
     }
 
     @Override
+    /**
+     * Advisors are executed in default order 0.
+     */
     public int getOrder() {
         return 0;
     }

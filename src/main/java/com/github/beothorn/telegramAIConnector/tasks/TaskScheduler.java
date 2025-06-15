@@ -34,6 +34,9 @@ public class TaskScheduler {
     private final org.springframework.scheduling.TaskScheduler scheduler;
     private final Map<Long, Map<String, ScheduledWithTime>> tasksPerChat = new HashMap<>();
 
+    /**
+     * Creates a new scheduler using an internal thread pool.
+     */
     public TaskScheduler(
         final TaskRepository taskRepository
     ) {
@@ -46,6 +49,11 @@ public class TaskScheduler {
         this.scheduler = taskScheduler;
     }
 
+    /**
+     * Restores tasks persisted in the database.
+     *
+     * @param telegramAiBot bot instance used to execute restored tasks
+     */
     public void restoreTasksFromDatabase(
         final TelegramAiBot telegramAiBot
     ) {
@@ -59,6 +67,14 @@ public class TaskScheduler {
         }
     }
 
+    /**
+     * Schedules a new task for execution.
+     *
+     * @param telegramAiBot bot instance used to execute the command
+     * @param chatId        chat identifier owning the task
+     * @param command       command to execute
+     * @param dateTime      when the command should be executed
+     */
     public synchronized void schedule(
         final TelegramAiBot telegramAiBot,
         final Long chatId,
@@ -113,6 +129,13 @@ public class TaskScheduler {
         return uniqueKey;
     }
 
+    /**
+     * Cancels a scheduled task.
+     *
+     * @param chatId chat identifier
+     * @param key    task key to cancel
+     * @return the removed task if it existed
+     */
     public synchronized Optional<TaskCommand> cancel(Long chatId, String key) {
         Map<String, ScheduledWithTime> tasksForChatId = tasksPerChat.getOrDefault(chatId, new HashMap<>());
 
@@ -132,12 +155,21 @@ public class TaskScheduler {
         return Optional.of(cancelledTask.taskCommand());
     }
 
+    /**
+     * Lists human readable descriptions for the scheduled tasks of a chat.
+     *
+     * @param chatId chat identifier
+     * @return list of scheduled task descriptions separated by newlines
+     */
     public synchronized String listScheduledKeys(Long chatId) {
         Map<String, ScheduledWithTime> tasksForChatId = tasksPerChat.getOrDefault(chatId, new HashMap<>());
         return tasksForChatId.values().stream().map(Objects::toString).collect(Collectors.joining("\n"));
     }
 
     @PreDestroy
+    /**
+     * Cancels all scheduled tasks and shuts the scheduler down.
+     */
     public synchronized void shutdown() {
         tasksPerChat.values().forEach(map ->
                 map.values().forEach(t -> t.task.cancel(false)));

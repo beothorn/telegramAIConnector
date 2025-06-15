@@ -15,6 +15,11 @@ public class TaskRepository {
 
     private String dbUrl;
 
+    /**
+     * Initializes the repository using the provided database URL.
+     *
+     * @param dbUrl JDBC connection string
+     */
     public void initDatabase(final String dbUrl) {
         this.dbUrl = dbUrl;
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -33,6 +38,11 @@ public class TaskRepository {
         }
     }
 
+    /**
+     * Retrieves all stored tasks.
+     *
+     * @return list of scheduled tasks
+     */
     public List<TaskCommand> getAll() {
         List<TaskCommand> tasks = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -53,6 +63,12 @@ public class TaskRepository {
         return tasks;
     }
 
+    /**
+     * Retrieves tasks scheduled for a given chat.
+     *
+     * @param chatId chat identifier
+     * @return list of tasks for the chat
+     */
     public List<TaskCommand> findByChatId(long chatId) {
         List<TaskCommand> tasks = new ArrayList<>();
         String sql = "SELECT key, chatId, dateTime, command FROM tasks WHERE chatId = ?";
@@ -74,6 +90,11 @@ public class TaskRepository {
         return tasks;
     }
 
+    /**
+     * Persists a task.
+     *
+     * @param taskCommand task to store
+     */
     public void addTask(TaskCommand taskCommand) {
         String sql = "INSERT OR REPLACE INTO tasks (key, chatId, dateTime, command) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -91,6 +112,12 @@ public class TaskRepository {
         }
     }
 
+    /**
+     * Deletes a task.
+     *
+     * @param key task key
+     * @return {@code true} if a task was deleted
+     */
     public boolean deleteTask(String key) {
         String sql = "DELETE FROM tasks WHERE key = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);

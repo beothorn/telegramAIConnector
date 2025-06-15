@@ -37,6 +37,14 @@ public class FalAiTools {
         return "data:" + mime + ";base64," + base64;
     }
 
+    /**
+     * Uses Fal AI to edit an uploaded image according to the provided prompt.
+     *
+     * @param fileName      name of the uploaded file to edit
+     * @param prompt        textual description of the transformation
+     * @param outputFileName resulting file name
+     * @return a user friendly message about the operation result
+     */
     @Tool(description = "AI to edit images with an image and a text describing the transformation as input and a transformed image as output.")
     public String editImage(
         @ToolParam(description = "Name of the source image located in the Telegram upload folder") String fileName,
@@ -85,6 +93,13 @@ public class FalAiTools {
         }
     }
 
+    /**
+     * Generates a new image using Fal AI from the given prompt.
+     *
+     * @param prompt         textual description of the desired image
+     * @param outputFileName file name to store the generated image under
+     * @return operation status message
+     */
     @Tool(description = "AI to generate images from a text prompt.")
     public String generateImage(
         @ToolParam(description = "Instruction describing the desired image") String prompt,
@@ -126,6 +141,12 @@ public class FalAiTools {
         }
     }
 
+    /**
+     * Analyses an uploaded image describing its contents and performing OCR.
+     *
+     * @param fileName the uploaded file to analyse
+     * @return the description of the image or an error message
+     */
     @Tool(description = "Describe the content of an image and transcribe any text found on it.")
     public String describeImage(
         @ToolParam(description = "Name of the image located in the Telegram upload folder") String fileName
@@ -194,6 +215,12 @@ public class FalAiTools {
         return new String(process.getInputStream().readAllBytes()).trim();
     }
 
+    /**
+     * Transcribes the given audio file using Fal AI.
+     *
+     * @param fileName name of the audio file located inside the upload folder
+     * @return the transcribed text or an error message
+     */
     @Tool(description = "Transcribes an audio file.")
     public String audioToText(
         @ToolParam(description = "Name of the audio file located in the Telegram upload folder") String fileName

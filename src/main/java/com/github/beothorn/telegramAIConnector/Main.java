@@ -21,12 +21,25 @@ public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+    /**
+     * Application entry point.
+     *
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(Main.class);
         app.setBannerMode(Banner.Mode.OFF);
         app.run(args);
     }
 
+    /**
+     * Registers the bot with Telegram when the application starts.
+     *
+     * @param botsApplication telegram bots application
+     * @param telegramAIBot    the bot instance
+     * @param botToken         bot authentication token
+     * @return command line runner executing the registration
+     */
     @Bean
     public CommandLineRunner onExecute(
         final TelegramBotsLongPollingApplication botsApplication,
