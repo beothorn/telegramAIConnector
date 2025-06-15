@@ -19,10 +19,14 @@
 <div class="section">
 <h2>Conversations</h2>
 <table>
-    <thead><tr><th>Chat Id</th></tr></thead>
+    <thead>
+    <tr><th>Chat Id</th><th>Name</th><th>Username</th></tr>
+    </thead>
     <tbody>
-    <tr th:each="chatId : ${conversations}">
-        <td><a th:href="@{|/backoffice/conversations/${chatId}|}" th:text="${chatId}"></a></td>
+    <tr th:each="u : ${conversations}">
+        <td><a th:href="@{|/backoffice/conversations/${u.chatId}|}" th:text="${u.chatId}"></a></td>
+        <td th:text="${u.firstName} + ' ' + ${u.lastName}"></td>
+        <td th:text="${u.username}"></td>
     </tr>
     </tbody>
 </table>

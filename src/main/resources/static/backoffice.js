@@ -1,5 +1,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
+  const autoResize = (textarea) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  };
+
   const reloadMessages = async () => {
     const table = document.getElementById('messagesTable');
     if (!table) return;
@@ -29,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
       tbody.appendChild(tr);
     });
     tbody.querySelectorAll('form[data-fetch]').forEach(sendWithFetch);
+    tbody.querySelectorAll('textarea').forEach(t => {
+      autoResize(t);
+      t.addEventListener('input', () => autoResize(t));
+    });
   };
 
   const sendWithFetch = form => {
@@ -54,5 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.querySelectorAll('form[data-fetch]').forEach(sendWithFetch);
+  document.querySelectorAll('textarea').forEach(t => {
+    autoResize(t);
+    t.addEventListener('input', () => autoResize(t));
+  });
 });
 
