@@ -51,6 +51,8 @@ input[type="text"] {
     background-color: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
+    overflow-y: hidden;
+    resize: vertical;
 }
 button {
     padding: 6px 12px;
