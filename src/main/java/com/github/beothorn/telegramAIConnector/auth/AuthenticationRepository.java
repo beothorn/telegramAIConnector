@@ -14,6 +14,11 @@ public class AuthenticationRepository {
 
     private String dbUrl;
 
+    /**
+     * Initializes the repository using the given SQLite database URL.
+     *
+     * @param dbUrl JDBC URL of the database
+     */
     public void initDatabase(final String dbUrl) {
         this.dbUrl = dbUrl;
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -34,6 +39,15 @@ public class AuthenticationRepository {
         }
     }
 
+    /**
+     * Creates or updates an authentication entry.
+     *
+     * @param chatId           chat identifier
+     * @param passwordHash     hashed password
+     * @param logged           logged in state
+     * @param logExpirationDate expiration date for the logged state
+     * @return the stored {@link AuthData}
+     */
     public AuthData addAuthEntry(
         final long chatId,
         final String passwordHash,
@@ -61,6 +75,14 @@ public class AuthenticationRepository {
         return new AuthData(chatId, passwordHash, logged, logExpirationDate);
     }
 
+    /**
+     * Updates the logged state for a chat.
+     * The column expiration date is used to determine if the password is still valid.
+     *
+     * @param chatId           chat identifier
+     * @param logged           new logged state
+     * @param logExpirationDate expiration date
+     */
     public void setLoggedState(
         final long chatId,
         final boolean logged,
@@ -91,6 +113,13 @@ public class AuthenticationRepository {
         }
     }
 
+    /**
+     * Retrieves authentication data for a chat.
+     * Checking expiration date must be done by the caller.
+     *
+     * @param chatId chat identifier
+     * @return authentication data or empty if not found
+     */
     public Optional<AuthData> getAuthData(final long chatId) {
         String sql = "SELECT chatId, password_hash, logged, log_expiration_date FROM auth WHERE chatId = ?";
 

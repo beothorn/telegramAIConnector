@@ -1,17 +1,25 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Component;
 
 @Component
 public class ProcessingStatus {
 
     private final Map<Long, Map<Future<?>, String>> running = new ConcurrentHashMap<>();
 
+    /**
+     * Registers a new running asynchronous task for a chat.
+     * This could be, for example, a reminder for a future date.
+     *
+     * @param chatId      chat identifier
+     * @param future      running future
+     * @param description human readable description
+     */
     public void register(
         final Long chatId,
         final Future<?> future,
@@ -21,6 +29,12 @@ public class ProcessingStatus {
             .put(future, description);
     }
 
+    /**
+     * Removes a finished task from the registry.
+     *
+     * @param chatId chat identifier
+     * @param future future to remove
+     */
     public void unregister(
         final Long chatId,
         final Future<?> future
@@ -35,6 +49,12 @@ public class ProcessingStatus {
         }
     }
 
+    /**
+     * Returns a human-readable description of running tasks for a chat.
+     *
+     * @param chatId chat identifier
+     * @return description of running tasks or a default message
+     */
     public String status(
         final Long chatId
     ) {

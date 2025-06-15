@@ -12,11 +12,23 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Basic file operations.
+ * This is supposed to work only on the folder owned by the user.
+ * All operations are restricted to the base folder to avoid a user access to another user file.
+ */
 @Service
 public class FileService {
     private final String uploadFolder;
 
-    public FileService(@Value("${telegramIAConnector.uploadFolder}") String uploadFolder) {
+    /**
+     * Creates a new service using the given upload folder.
+     *
+     * @param uploadFolder base folder for uploaded files
+     */
+    public FileService(
+        @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
+    ) {
         this.uploadFolder = uploadFolder;
     }
 
@@ -24,7 +36,16 @@ public class FileService {
         return new File(uploadFolder + "/" + chatId);
     }
 
-    public List<String> list(Long chatId) {
+    /**
+     * Lists files uploaded in a chat.
+     * The user has access to a single folder.
+     *
+     * @param chatId chat identifier
+     * @return list of file names
+     */
+    public List<String> list(
+        final Long chatId
+    ) {
         File dir = baseDir(chatId);
         if (!dir.exists() || !dir.isDirectory()) {
             return List.of();
@@ -33,7 +54,18 @@ public class FileService {
         return files == null ? List.of() : Arrays.asList(files);
     }
 
-    public Resource download(Long chatId, String name) {
+    /**
+     * Returns a resource for the requested file or {@code null} if invalid.
+     * The user can only download files that belong to the chatId.
+     *
+     * @param chatId chat identifier
+     * @param name   file name
+     * @return file resource or {@code null}
+     */
+    public Resource download(
+        final Long chatId,
+        final String name
+    ) {
         File dir = baseDir(chatId);
         File file = new File(dir, name);
         if (TelegramAIFileUtils.isNotInParentFolder(dir, file) || !file.exists()) {
@@ -42,6 +74,12 @@ public class FileService {
         return new FileSystemResource(file);
     }
 
+    /**
+     * Deletes a file from the chat folder.
+     *
+     * @param chatId chat identifier
+     * @param name   file name to delete
+     */
     public void delete(Long chatId, String name) {
         File dir = baseDir(chatId);
         File file = new File(dir, name);
@@ -49,6 +87,14 @@ public class FileService {
         if (file.exists()) file.delete();
     }
 
+    /**
+     * Renames a file inside the chat folder.
+     *
+     * @param chatId  chat identifier
+     * @param oldName current file name
+     * @param newName new file name
+     * @throws IOException if renaming fails or names are invalid
+     */
     public void rename(Long chatId, String oldName, String newName) throws IOException {
         File dir = baseDir(chatId);
         File from = new File(dir, oldName);
@@ -63,6 +109,13 @@ public class FileService {
         }
     }
 
+    /**
+     * Saves an uploaded multipart file in the chat folder.
+     *
+     * @param chatId chat identifier
+     * @param file   uploaded multipart file
+     * @throws IOException if saving fails
+     */
     public void upload(Long chatId, MultipartFile file) throws IOException {
         File dir = baseDir(chatId);
         dir.mkdirs();

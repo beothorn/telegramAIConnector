@@ -23,12 +23,22 @@ public class MessagesRepository implements ChatMemoryRepository {
 
     private String dbUrl;
 
+    /**
+     * Creates a repository with the configured conversation window size.
+     *
+     * @param messagesOnConversation number of messages kept in memory
+     */
     public MessagesRepository(
         @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation
     ) {
         this.messageWindowSize = messagesOnConversation;
     }
 
+    /**
+     * Initializes the repository using the provided database.
+     *
+     * @param dbUrl JDBC connection string
+     */
     public void initDatabase(
         final String dbUrl
     ) {
@@ -51,6 +61,11 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     @Override
+    /**
+     * Returns all stored conversation identifiers.
+     *
+     * @return list of conversation ids
+     */
     public List<String> findConversationIds() {
         List<String> conversationIds = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -67,6 +82,12 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     @Override
+    /**
+     * Retrieves the last messages for a conversation limited by the window size.
+     *
+     * @param conversationId conversation identifier
+     * @return list of messages
+     */
     public List<Message> findByConversationId(
         @NotNull final String conversationId
     ) {
@@ -101,6 +122,12 @@ public class MessagesRepository implements ChatMemoryRepository {
         return messages;
     }
 
+    /**
+     * Retrieves the full conversation in chronological order.
+     *
+     * @param conversationId conversation identifier
+     * @return list of messages in chronological order
+     */
     public List<Message> getConversations(
         @NotNull final String conversationId
     ) {
@@ -135,6 +162,12 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     @Override
+    /**
+     * Persists the latest message of a conversation.
+     *
+     * @param conversationId conversation identifier
+     * @param messages       messages to store
+     */
     public void saveAll(
         @NotNull final String conversationId,
         final List<Message> messages
@@ -161,10 +194,23 @@ public class MessagesRepository implements ChatMemoryRepository {
     }
 
     @Override
+    /**
+     * Deleting conversations is intentionally disabled.
+     *
+     * @param conversationId conversation identifier
+     */
     public void deleteByConversationId(@NotNull final String conversationId) {
         // Never forget
     }
 
+    /**
+     * Returns paginated stored messages for UI consumption.
+     *
+     * @param chatId chat identifier
+     * @param limit  maximum number of messages
+     * @param offset offset for pagination
+     * @return list of stored messages
+     */
     public List<StoredMessage> getMessages(String chatId, int limit, int offset) {
         List<StoredMessage> messages = new ArrayList<>();
         String sql = "SELECT rowid, role, content, timestamp FROM messages WHERE chatId = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?";
@@ -192,6 +238,13 @@ public class MessagesRepository implements ChatMemoryRepository {
         return messages;
     }
 
+    /**
+     * Inserts a new message.
+     *
+     * @param chatId chat identifier
+     * @param role   message role
+     * @param content message text
+     */
     public void insertMessage(String chatId, String role, String content) {
         String sql = "INSERT INTO messages (chatId, role, content, timestamp) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -206,6 +259,12 @@ public class MessagesRepository implements ChatMemoryRepository {
         }
     }
 
+    /**
+     * Updates an existing message.
+     *
+     * @param id      message identifier
+     * @param content new content
+     */
     public void updateMessage(long id, String content) {
         String sql = "UPDATE messages SET content = ? WHERE rowid = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -218,6 +277,11 @@ public class MessagesRepository implements ChatMemoryRepository {
         }
     }
 
+    /**
+     * Deletes a stored message.
+     *
+     * @param id message identifier
+     */
     public void deleteMessage(long id) {
         String sql = "DELETE FROM messages WHERE rowid = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);

@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+/**
+ * Appends a user profile to the prompt.
+ * This way, in theory, answers are better tailored to the user.
+ */
 @Service
 public class UserProfileAdvisor implements CallAdvisor {
 
@@ -24,6 +28,9 @@ public class UserProfileAdvisor implements CallAdvisor {
     private final String prompt;
     private final Logger logger = LoggerFactory.getLogger(UserProfileAdvisor.class);
 
+    /**
+     * Creates the advisor using the given chat model and repository.
+     */
     public UserProfileAdvisor(
         final ChatModel chatModel,
         final UserProfileRepository userProfileRepository,
@@ -38,6 +45,9 @@ public class UserProfileAdvisor implements CallAdvisor {
         }
     }
 
+    /**
+     * Updates the user profile using the last message before invoking the chain.
+     */
     @Override
     public ChatClientResponse adviseCall(
         final ChatClientRequest chatClientRequest,
@@ -50,7 +60,7 @@ public class UserProfileAdvisor implements CallAdvisor {
 
         final long chatId = Long.parseLong((String) chatClientRequest.context().get("chat_memory_conversation_id"));
 
-        // TODO: given the current user profile and the last message, ask the AI to
+        // given the current user profile and the last message, ask the AI to
         // update the profile if we found the user skill level in a subject
         // example, speaks native spanish (so we can switch to spanish)
         // is a nurse (so we can use professional medical language) and so on
@@ -73,11 +83,17 @@ public class UserProfileAdvisor implements CallAdvisor {
         return callAdvisorChain.nextCall(processedChatClientRequest);
     }
 
+    /**
+     * Returns the advisor name.
+     */
     @Override
     public String getName() {
         return "UserProfileAdvisor";
     }
 
+    /**
+     * Advisors are executed in default order 0.
+     */
     @Override
     public int getOrder() {
         return 0;

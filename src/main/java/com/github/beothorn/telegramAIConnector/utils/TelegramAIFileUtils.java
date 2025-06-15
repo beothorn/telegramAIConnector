@@ -4,6 +4,13 @@ import java.io.File;
 
 public class TelegramAIFileUtils {
 
+    /**
+     * Ensures that the given file resides within the parent folder.
+     *
+     * @param parentFolder expected parent directory
+     * @param fileToCreate file to validate
+     * @return {@code true} if the file is outside the parent folder
+     */
     public static boolean isNotInParentFolder(File parentFolder, File fileToCreate) {
         try {
             String parentPath = parentFolder.getCanonicalPath();

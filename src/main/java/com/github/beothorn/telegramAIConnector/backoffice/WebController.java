@@ -1,12 +1,10 @@
 package com.github.beothorn.telegramAIConnector.backoffice;
 
 import com.github.beothorn.telegramAIConnector.tasks.TaskRepository;
-import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
-import com.github.beothorn.telegramAIConnector.user.StoredMessage;
-import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
-import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
-import com.github.beothorn.telegramAIConnector.backoffice.FileService;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
+import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * The webpage used to manage the application.
+ */
 @Controller
 @RequestMapping("/backoffice")
 public class WebController {
@@ -25,6 +26,16 @@ public class WebController {
     private final UserRepository userRepository;
     private final TelegramAiBot telegramAiBot;
 
+    /**
+     * Creates the controller with required dependencies.
+     *
+     * @param taskRepository       repository for scheduled tasks
+     * @param messagesRepository   repository for chat messages
+     * @param userProfileRepository repository for user profiles
+     * @param fileService          service to access uploaded files
+     * @param userRepository       repository of users
+     * @param telegramAiBot        bot instance used for UI information
+     */
     public WebController(
         final TaskRepository taskRepository,
         final MessagesRepository messagesRepository,
@@ -41,6 +52,12 @@ public class WebController {
         this.telegramAiBot = telegramAiBot;
     }
 
+    /**
+     * Displays the backoffice index page.
+     *
+     * @param model UI model to populate
+     * @return view name
+     */
     @GetMapping({"", "/"})
     public String index(Model model) {
         model.addAttribute("botName", telegramAiBot.getBotName());
@@ -49,6 +66,14 @@ public class WebController {
         return "backoffice";
     }
 
+    /**
+     * Shows a single conversation page.
+     *
+     * @param chatId conversation identifier
+     * @param page   page number for pagination
+     * @param model  UI model to populate
+     * @return view name
+     */
     @GetMapping({"/conversations/{chatId}", "/conversations/{chatId}/"})
     public String conversation(
         @PathVariable String chatId,
