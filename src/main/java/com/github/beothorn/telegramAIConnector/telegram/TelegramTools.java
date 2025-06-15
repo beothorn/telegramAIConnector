@@ -19,6 +19,9 @@ public class TelegramTools {
     private final TaskScheduler taskScheduler;
     private final String uploadFolder;
 
+    /**
+     * Creates a helper bound to a specific chat.
+     */
     public TelegramTools(
             final TelegramAiBot telegramAiBot,
             final TaskScheduler taskScheduler,
@@ -31,6 +34,9 @@ public class TelegramTools {
         this.uploadFolder = uploadFolder + "/" + chatId;
     }
 
+    /**
+     * Schedules a reminder message for the given date.
+     */
     @Tool(description = "Schedule a reminder message to be sent on a date set in the format 'yyyy.MM.dd HH:mm'.")
     public String sendReminder(
         @ToolParam(description = "The reminder message to be sent") final String message,
@@ -52,6 +58,9 @@ public class TelegramTools {
         return "Reminder was registered under the key '" + message + "' at '" + dateTime + "'. Please inform the user.";
     }
 
+    /**
+     * Deletes a previously scheduled reminder.
+     */
     @Tool(description = "Delete a reminder")
     public String deleteReminder(
         @ToolParam(description = "The reminder message to be deleted") final String message
@@ -63,11 +72,17 @@ public class TelegramTools {
                 message + "' is wrong? Check the key, it can also be something else. Please inform the user.");
     }
 
+    /**
+     * Lists all reminders for this chat.
+     */
     @Tool(description = "List the scheduled reminders")
     public String listReminders() {
         return taskScheduler.listScheduledKeys(chatId);
     }
 
+    /**
+     * Sends a markdown message asynchronously to the chat.
+     */
     @Tool(description = "Send a markdown message to the user asynchronously through telegram")
     public String sendMessage(
         @ToolParam(description = "The message in markdown format") final String message
@@ -80,6 +95,9 @@ public class TelegramTools {
         return "Sent message successfully";
     }
 
+    /**
+     * Sends an uploaded file with a caption to the user.
+     */
     @Tool(description = "Send a file from the Telegram upload folder to the user with a given caption")
     public String sendFile(
         @ToolParam(description = "The file name") final String fileName,
@@ -104,6 +122,9 @@ public class TelegramTools {
         }
     }
 
+    /**
+     * Lists files uploaded by this chat.
+     */
     @Tool(description = "Returns the list of files inside Telegram upload folder")
     public String listUploadedFiles() {
         File dir = new File(uploadFolder);
@@ -124,6 +145,9 @@ public class TelegramTools {
         return "The files are:\n" + result;
     }
 
+    /**
+     * Resolves the absolute path for a file inside the chat upload folder.
+     */
     @Tool(description = "Returns the full path for a file inside Telegram upload folder.")
     public String getFileFullPath(
         @ToolParam(description = "The file name to return the full path.") final String fileName
@@ -143,6 +167,9 @@ public class TelegramTools {
         }
     }
 
+    /**
+     * Deletes an uploaded file.
+     */
     @Tool(description = "Deletes a file inside Telegram upload folder")
     public String deleteFile(
         @ToolParam(description = "The file name to delete. Make sure it is the right file.") final String fileName
@@ -163,6 +190,9 @@ public class TelegramTools {
         }
     }
 
+    /**
+     * Renames an uploaded file.
+     */
     @Tool(description = "Rename a file inside Telegram upload folder")
     public String renameFile(
         @ToolParam(description = "The current file name") final String currentName,
@@ -192,6 +222,9 @@ public class TelegramTools {
         }
     }
 
+    /**
+     * Reads the text contents of an uploaded file.
+     */
     @Tool(description = "Reads the text contents of a file inside Telegram upload folder")
     public String readFile(
         @ToolParam(description = "The file name to be read.") final String fileName
@@ -208,6 +241,9 @@ public class TelegramTools {
         }
     }
 
+    /**
+     * Saves the given content as a file in the upload folder.
+     */
     @Tool(description = "Saves string content as file inside Telegram upload folder")
     public String saveAsFile(
             @ToolParam(description = "The file name to be used.") final String fileName,
@@ -227,6 +263,9 @@ public class TelegramTools {
         }
     }
 
+    /**
+     * Sends the provided text as a temporary file.
+     */
     @Tool(description = "Send string as file")
     public String sendAsFile(
             @ToolParam(description = "The file name to be used.") final String fileName,

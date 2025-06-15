@@ -12,6 +12,11 @@ import java.util.jar.Manifest;
 
 public class SystemTools {
 
+    /**
+     * Returns the current date time formatted as {@code yyyy.MM.dd HH:mm} respecting the current locale.
+     *
+     * @return formatted current date time
+     */
     @Tool(description = "Get the current date and time in the format Year.Month.Day Hour:Minute")
     public String getCurrentDateTime() {
         Locale locale = LocaleContextHolder.getLocale();
@@ -19,6 +24,12 @@ public class SystemTools {
         return LocalDateTime.now().format(formatter);
     }
 
+    /**
+     * Reads the application version from the manifest file.
+     *
+     * @return application version string
+     * @throws IOException if the manifest cannot be read
+     */
     @Tool(description = "Get telegramAIConnector version.")
     public String getVersion() throws IOException {
         InputStream manifestStream = SystemTools.class.getClassLoader()

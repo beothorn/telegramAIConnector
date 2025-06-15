@@ -41,6 +41,9 @@ public class WebController {
         this.telegramAiBot = telegramAiBot;
     }
 
+    /**
+     * Displays the backoffice index page.
+     */
     @GetMapping({"", "/"})
     public String index(Model model) {
         model.addAttribute("botName", telegramAiBot.getBotName());
@@ -49,6 +52,9 @@ public class WebController {
         return "backoffice";
     }
 
+    /**
+     * Shows a single conversation page.
+     */
     @GetMapping({"/conversations/{chatId}", "/conversations/{chatId}/"})
     public String conversation(
         @PathVariable String chatId,

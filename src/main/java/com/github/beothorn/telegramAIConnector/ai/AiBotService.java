@@ -91,6 +91,15 @@ public class AiBotService {
             .build();
     }
 
+    /**
+     * Sends a prompt to the underlying chat client using the provided tools and
+     * returns the AI answer.
+     *
+     * @param chatId      the conversation identifier
+     * @param message     message text
+     * @param toolObjects optional tool instances to enrich the prompt
+     * @return the AI response or the error message if something fails
+     */
     public String prompt(
         final Long chatId,
         final String message,

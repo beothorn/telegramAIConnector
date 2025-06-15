@@ -16,6 +16,9 @@ import java.util.List;
 public class FileService {
     private final String uploadFolder;
 
+    /**
+     * Creates a new service using the given upload folder.
+     */
     public FileService(@Value("${telegramIAConnector.uploadFolder}") String uploadFolder) {
         this.uploadFolder = uploadFolder;
     }
@@ -24,6 +27,9 @@ public class FileService {
         return new File(uploadFolder + "/" + chatId);
     }
 
+    /**
+     * Lists files uploaded by a chat.
+     */
     public List<String> list(Long chatId) {
         File dir = baseDir(chatId);
         if (!dir.exists() || !dir.isDirectory()) {
@@ -33,6 +39,9 @@ public class FileService {
         return files == null ? List.of() : Arrays.asList(files);
     }
 
+    /**
+     * Returns a resource for the requested file or {@code null} if invalid.
+     */
     public Resource download(Long chatId, String name) {
         File dir = baseDir(chatId);
         File file = new File(dir, name);
@@ -42,6 +51,9 @@ public class FileService {
         return new FileSystemResource(file);
     }
 
+    /**
+     * Deletes a file from the chat folder.
+     */
     public void delete(Long chatId, String name) {
         File dir = baseDir(chatId);
         File file = new File(dir, name);
@@ -49,6 +61,9 @@ public class FileService {
         if (file.exists()) file.delete();
     }
 
+    /**
+     * Renames a file inside the chat folder.
+     */
     public void rename(Long chatId, String oldName, String newName) throws IOException {
         File dir = baseDir(chatId);
         File from = new File(dir, oldName);
@@ -63,6 +78,9 @@ public class FileService {
         }
     }
 
+    /**
+     * Saves an uploaded multipart file in the chat folder.
+     */
     public void upload(Long chatId, MultipartFile file) throws IOException {
         File dir = baseDir(chatId);
         dir.mkdirs();

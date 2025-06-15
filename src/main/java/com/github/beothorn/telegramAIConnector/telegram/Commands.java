@@ -25,6 +25,9 @@ public class Commands {
     private final String uploadFolder;
     private final UserProfileRepository userProfileRepository;
 
+    /**
+     * Constructs a helper with the provided dependencies.
+     */
     public Commands(
             final TaskScheduler taskScheduler,
             final ToolCallbackProvider toolCallbackProvider,
@@ -38,6 +41,9 @@ public class Commands {
         this.systemTools = new SystemTools();
     }
 
+    /**
+     * Returns the application version.
+     */
     public String getVersion() {
         try {
             return systemTools.getVersion();
@@ -47,10 +53,16 @@ public class Commands {
         }
     }
 
+    /**
+     * Returns the current date and time using {@link SystemTools}.
+     */
     public String getCurrentDateTime() {
         return systemTools.getCurrentDateTime();
     }
 
+    /**
+     * Lists uploaded files for the given chat.
+     */
     public String listUploadedFiles(
         final Long chatId
     ) {
@@ -63,6 +75,9 @@ public class Commands {
         return telegramTools.listUploadedFiles();
     }
 
+    /**
+     * Deletes an uploaded file.
+     */
     public String delete(
         final Long chatId,
         final String file
@@ -76,6 +91,9 @@ public class Commands {
         return telegramTools.deleteFile(file);
     }
 
+    /**
+     * Reads a file contents.
+     */
     public String read(Long chatId, String file) {
         final TelegramTools telegramTools = new TelegramTools(
                 null,
@@ -86,6 +104,9 @@ public class Commands {
         return telegramTools.readFile(file);
     }
 
+    /**
+     * Sends a file to the user.
+     */
     public String download(
         final TelegramAiBot telegramAiBot,
         final Long chatId,
@@ -100,12 +121,18 @@ public class Commands {
         return telegramTools.sendFile(args, "");
     }
 
+    /**
+     * Lists scheduled tasks for a chat.
+     */
     public String listTasks(
         final Long chatId
     ) {
         return taskScheduler.listScheduledKeys(chatId);
     }
 
+    /**
+     * Lists the available tool callbacks.
+     */
     public String listTools() {
         return Arrays.stream(toolCallbackProvider.getToolCallbacks())
                 .map(ToolCallback::getToolDefinition)
@@ -113,10 +140,16 @@ public class Commands {
                 .collect(Collectors.joining("\n"));
     }
 
+    /**
+     * Gets the stored profile for a chat.
+     */
     public String getProfile(long chatId) {
         return userProfileRepository.getProfile(chatId).orElse("No profile.");
     }
 
+    /**
+     * Updates the user profile for a chat.
+     */
     public String setProfile(long chatId, String profile) {
         userProfileRepository.setProfile(chatId, profile);
         return "Profile updated.";

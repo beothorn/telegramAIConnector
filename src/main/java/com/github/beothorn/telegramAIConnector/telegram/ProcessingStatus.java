@@ -12,6 +12,9 @@ public class ProcessingStatus {
 
     private final Map<Long, Map<Future<?>, String>> running = new ConcurrentHashMap<>();
 
+    /**
+     * Registers a new running asynchronous task for a chat.
+     */
     public void register(
         final Long chatId,
         final Future<?> future,
@@ -21,6 +24,9 @@ public class ProcessingStatus {
             .put(future, description);
     }
 
+    /**
+     * Removes a finished task from the registry.
+     */
     public void unregister(
         final Long chatId,
         final Future<?> future
@@ -35,6 +41,9 @@ public class ProcessingStatus {
         }
     }
 
+    /**
+     * Returns a human readable description of running tasks for a chat.
+     */
     public String status(
         final Long chatId
     ) {

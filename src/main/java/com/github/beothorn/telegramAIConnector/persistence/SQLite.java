@@ -17,6 +17,9 @@ public class SQLite {
 
     private final String dbUrl;
 
+    /**
+     * Creates and initializes all repositories using a SQLite database stored in the given folder.
+     */
     public SQLite(
         @Value("${telegramIAConnector.dbFilesFolder}")  final String dbFolder,
         final MessagesRepository messagesRepository,

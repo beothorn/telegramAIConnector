@@ -13,6 +13,9 @@ public class UserRepository {
 
     private String dbUrl;
 
+    /**
+     * Initializes the user table in the given database.
+     */
     public void initDatabase(final String dbUrl) {
         this.dbUrl = dbUrl;
         try (Connection conn = DriverManager.getConnection(dbUrl); Statement stmt = conn.createStatement()) {
@@ -32,6 +35,9 @@ public class UserRepository {
         }
     }
 
+    /**
+     * Inserts or updates a user entry.
+     */
     public void createOrUpdateUser(
         final long chatId,
         final String username,
@@ -59,6 +65,9 @@ public class UserRepository {
         }
     }
 
+    /**
+     * Retrieves a user by chat id.
+     */
     public UserInfo getUser(long chatId) {
         String sql = "SELECT chatId, username, first_name, last_name FROM users WHERE chatId = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);

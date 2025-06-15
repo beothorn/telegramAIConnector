@@ -135,6 +135,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
+    /**
+     * Sends a plain text message to a chat.
+     */
     public void sendMessage(
         final Long chatId,
         final String response
@@ -163,6 +166,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
+    /**
+     * Sets the typing status for the chat.
+     */
     public void setTyping(
         final Long chatId
     ) throws TelegramApiException {
@@ -176,6 +182,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         telegramClient.execute(typingAction);
     }
 
+    /**
+     * Sends a markdown formatted message to a chat.
+     */
     public void sendMarkdownMessage(
         final Long chatId,
         final String message
@@ -200,6 +209,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
+    /**
+     * Sends a file with an optional caption to a chat.
+     */
     public void sendFileWithCaption(
         final Long chatId,
         final String filePath,
@@ -215,6 +227,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         telegramClient.execute(sendDocument);
     }
 
+    /**
+     * Processes an anonymous prompt not linked to a chat id.
+     */
     public String consumeAnonymousMessage(
             final String message
     ) {
@@ -223,6 +238,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         return aiBotService.prompt(0L, message, telegramTools, new SystemTools());
     }
 
+    /**
+     * Sends a system message to a chat and returns the AI response.
+     */
     public String consumeSystemMessage(
         final Long chatId,
         final String message
@@ -239,6 +257,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         return response;
     }
 
+    /**
+     * Executes a text command by sending it as a markdown message.
+     */
     public void execute(
             final Long chatId,
             final String command
@@ -631,10 +652,16 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         );
     }
 
+    /**
+     * Returns the configured bot name.
+     */
     public String getBotName() {
         return botName;
     }
 
+    /**
+     * Stops internal executors and releases resources.
+     */
     @PreDestroy
     public void shutdown() {
         executor.shutdown();

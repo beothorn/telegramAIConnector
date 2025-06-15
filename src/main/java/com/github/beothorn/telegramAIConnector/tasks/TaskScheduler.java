@@ -34,6 +34,9 @@ public class TaskScheduler {
     private final org.springframework.scheduling.TaskScheduler scheduler;
     private final Map<Long, Map<String, ScheduledWithTime>> tasksPerChat = new HashMap<>();
 
+    /**
+     * Creates a new scheduler using an internal thread pool.
+     */
     public TaskScheduler(
         final TaskRepository taskRepository
     ) {
@@ -46,6 +49,9 @@ public class TaskScheduler {
         this.scheduler = taskScheduler;
     }
 
+    /**
+     * Restores tasks persisted in the database.
+     */
     public void restoreTasksFromDatabase(
         final TelegramAiBot telegramAiBot
     ) {
@@ -59,6 +65,9 @@ public class TaskScheduler {
         }
     }
 
+    /**
+     * Schedules a new task for execution.
+     */
     public synchronized void schedule(
         final TelegramAiBot telegramAiBot,
         final Long chatId,
@@ -113,6 +122,9 @@ public class TaskScheduler {
         return uniqueKey;
     }
 
+    /**
+     * Cancels a scheduled task.
+     */
     public synchronized Optional<TaskCommand> cancel(Long chatId, String key) {
         Map<String, ScheduledWithTime> tasksForChatId = tasksPerChat.getOrDefault(chatId, new HashMap<>());
 
@@ -132,12 +144,18 @@ public class TaskScheduler {
         return Optional.of(cancelledTask.taskCommand());
     }
 
+    /**
+     * Lists human readable descriptions for the scheduled tasks of a chat.
+     */
     public synchronized String listScheduledKeys(Long chatId) {
         Map<String, ScheduledWithTime> tasksForChatId = tasksPerChat.getOrDefault(chatId, new HashMap<>());
         return tasksForChatId.values().stream().map(Objects::toString).collect(Collectors.joining("\n"));
     }
 
     @PreDestroy
+    /**
+     * Cancels all scheduled tasks and shuts the scheduler down.
+     */
     public synchronized void shutdown() {
         tasksPerChat.values().forEach(map ->
                 map.values().forEach(t -> t.task.cancel(false)));

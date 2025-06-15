@@ -14,6 +14,9 @@ public class UserProfileRepository {
 
     private String dbUrl;
 
+    /**
+     * Initializes the user profile table.
+     */
     public void initDatabase(final String dbUrl) {
         this.dbUrl = dbUrl;
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -32,6 +35,9 @@ public class UserProfileRepository {
         }
     }
 
+    /**
+     * Stores or updates a profile for the given chat.
+     */
     public void setProfile(long chatId, String profile) {
         if (dbUrl == null) {
             logger.error("Database not initialized. Call initDatabase() first.");
@@ -56,6 +62,9 @@ public class UserProfileRepository {
         }
     }
 
+    /**
+     * Retrieves a stored profile for a chat.
+     */
     public Optional<String> getProfile(long chatId) {
         if (dbUrl == null) {
             logger.error("Database not initialized. Call initDatabase() first.");
