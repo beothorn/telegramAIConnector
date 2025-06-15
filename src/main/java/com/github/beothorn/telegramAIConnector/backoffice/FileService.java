@@ -12,6 +12,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Basic file operations.
+ * This is supposed to work only on the folder owned by the user.
+ * All operations are restricted to the base folder to avoid a user access to another user file.
+ */
 @Service
 public class FileService {
     private final String uploadFolder;
@@ -21,7 +26,9 @@ public class FileService {
      *
      * @param uploadFolder base folder for uploaded files
      */
-    public FileService(@Value("${telegramIAConnector.uploadFolder}") String uploadFolder) {
+    public FileService(
+        @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
+    ) {
         this.uploadFolder = uploadFolder;
     }
 
@@ -30,12 +37,15 @@ public class FileService {
     }
 
     /**
-     * Lists files uploaded by a chat.
+     * Lists files uploaded in a chat.
+     * The user has access to a single folder.
      *
      * @param chatId chat identifier
      * @return list of file names
      */
-    public List<String> list(Long chatId) {
+    public List<String> list(
+        final Long chatId
+    ) {
         File dir = baseDir(chatId);
         if (!dir.exists() || !dir.isDirectory()) {
             return List.of();
@@ -46,12 +56,16 @@ public class FileService {
 
     /**
      * Returns a resource for the requested file or {@code null} if invalid.
+     * The user can only download files that belong to the chatId.
      *
      * @param chatId chat identifier
      * @param name   file name
      * @return file resource or {@code null}
      */
-    public Resource download(Long chatId, String name) {
+    public Resource download(
+        final Long chatId,
+        final String name
+    ) {
         File dir = baseDir(chatId);
         File file = new File(dir, name);
         if (TelegramAIFileUtils.isNotInParentFolder(dir, file) || !file.exists()) {

@@ -8,6 +8,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Tasks are commands to be executed in the future.
+ * They need to be persisted in case the application is turned off so they can be recovered.
+ * Tasks can be, for example, reminders.
+ */
 @Service
 public class TaskRepository {
 

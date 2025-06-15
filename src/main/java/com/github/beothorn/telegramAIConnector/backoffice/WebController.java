@@ -1,12 +1,10 @@
 package com.github.beothorn.telegramAIConnector.backoffice;
 
 import com.github.beothorn.telegramAIConnector.tasks.TaskRepository;
-import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
-import com.github.beothorn.telegramAIConnector.user.StoredMessage;
-import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
-import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
-import com.github.beothorn.telegramAIConnector.backoffice.FileService;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
+import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * The webpage used to manage the application.
+ */
 @Controller
 @RequestMapping("/backoffice")
 public class WebController {

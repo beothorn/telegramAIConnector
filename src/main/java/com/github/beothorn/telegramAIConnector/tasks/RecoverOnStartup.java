@@ -20,12 +20,14 @@ public class RecoverOnStartup implements ApplicationListener<ApplicationReadyEve
         this.telegramAiBot = telegramAiBot;
     }
 
-    @Override
+
     /**
      * Restores tasks from the database once the application is ready.
+     * This way, all tasks (such as reminders) will still be triggered.
      *
      * @param event event signaling the application is ready
      */
+    @Override
     public void onApplicationEvent(@NotNull ApplicationReadyEvent event) {
         taskScheduler.restoreTasksFromDatabase(telegramAiBot);
     }

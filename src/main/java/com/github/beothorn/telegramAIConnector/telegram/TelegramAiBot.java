@@ -41,6 +41,9 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * Receives and send messages, files and any other media types to Telegram.
+ */
 @Component
 public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
@@ -244,6 +247,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
     /**
      * Processes an anonymous prompt not linked to a chat id.
+     * Chat id 0 is used.
      *
      * @param message prompt text
      * @return AI response to the prompt
@@ -287,8 +291,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
      * @param command command to execute
      */
     public void execute(
-            final Long chatId,
-            final String command
+        final Long chatId,
+        final String command
     ) {
         try {
             sendMarkdownMessage(chatId, command);

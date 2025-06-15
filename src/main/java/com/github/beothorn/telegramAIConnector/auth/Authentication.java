@@ -54,6 +54,8 @@ public class Authentication {
 
     /**
      * Attempts to authenticate a chat using the provided password.
+     * If user has never changed their password, only the master password works.
+     * If the user already changed the password, this will check if the password hash matches the db.
      *
      * @param chatId        chat identifier
      * @param passwordLogin password provided by the user
@@ -105,13 +107,14 @@ public class Authentication {
 
     /**
      * Sets or updates the password for a chat.
+     * When this is set, master password will no longer works.
      *
      * @param chatId        chat identifier
      * @param passwordLogin raw password to store
      */
     public void setPasswordForUser(
-            final Long chatId,
-            final String passwordLogin
+        final Long chatId,
+        final String passwordLogin
     ) {
         String passwordHash = hashPassword(passwordLogin);
         logger.info("Setting password for chatId {}", chatId);
@@ -130,6 +133,7 @@ public class Authentication {
 
     /**
      * Logs out the given chat.
+     * This is global, the user will be logged from the chat no matter which device they are in.
      *
      * @param chatId chat identifier
      */

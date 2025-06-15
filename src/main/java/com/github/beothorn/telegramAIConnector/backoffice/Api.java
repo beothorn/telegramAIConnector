@@ -7,11 +7,11 @@ import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.StoredMessage;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
@@ -71,20 +71,22 @@ public class Api {
 
     /**
      * Sends an anonymous prompt to the bot.
+     * This will use chat id 0.
      *
      * @param message prompt text
      * @return AI response
-     * @throws TelegramApiException if sending fails
      */
     @PostMapping("/prompt")
     public String prompt(
         @RequestParam("message") final String message
-    ) throws TelegramApiException {
+    ) {
         return telegramAiBot.consumeAnonymousMessage(message);
     }
 
     /**
      * Returns all scheduled tasks.
+     * The scheduled tasks are future tasks that execute a command for some chat id.
+     * For example, reminders.
      *
      * @return list of tasks
      */
@@ -105,6 +107,8 @@ public class Api {
 
     /**
      * Deletes a task.
+     * The scheduled tasks are future tasks that execute a command for some chat id.
+     * For example, reminders.
      *
      * @param key task identifier
      * @return {@code true} if task was removed
@@ -116,6 +120,10 @@ public class Api {
 
     /**
      * Lists known conversation ids.
+     * Conversations are open chats with a user.
+     * Each chat has a unique id.
+     * The chat id is used to identify the user, even though it is not the user id.
+     * In theory the same user could have two conversation ids, but in practice this do not happen.
      *
      * @return list of conversation identifiers
      */
@@ -126,6 +134,7 @@ public class Api {
 
     /**
      * Returns all messages of a conversation.
+     * The messages are the messages exchanged inside a single chat.
      *
      * @param chatId conversation identifier
      * @return messages stored for that conversation
@@ -137,6 +146,7 @@ public class Api {
 
     /**
      * Deletes a conversation.
+     * A conversation is a single message, from the user or from the assistant.
      *
      * @param chatId conversation identifier
      */
@@ -147,6 +157,7 @@ public class Api {
 
     /**
      * Sets a password for a chat.
+     * After setting, the master password will no longer work.
      *
      * @param chatId  chat identifier
      * @param password new password
@@ -218,6 +229,8 @@ public class Api {
 
     /**
      * Retrieves a user profile.
+     * A user profile is a text appended to the prompt to customize user preferences.
+     * The user or the assistant are free to edit this profile.
      *
      * @param chatId chat identifier
      * @return stored profile or empty string
@@ -229,6 +242,8 @@ public class Api {
 
     /**
      * Sets a user profile.
+     * A user profile is a text appended to the prompt to customize user preferences.
+     * The user or the assistant are free to edit this profile.
      *
      * @param chatId  chat identifier
      * @param profile new profile text
@@ -243,6 +258,7 @@ public class Api {
 
     /**
      * Lists tasks for a chat.
+     * Tasks are commands to be executed in the future, for example a reminder.
      *
      * @param chatId chat identifier
      * @return tasks belonging to the chat

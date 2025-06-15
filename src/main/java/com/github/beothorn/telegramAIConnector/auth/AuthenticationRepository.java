@@ -77,6 +77,7 @@ public class AuthenticationRepository {
 
     /**
      * Updates the logged state for a chat.
+     * The column expiration date is used to determine if the password is still valid.
      *
      * @param chatId           chat identifier
      * @param logged           new logged state
@@ -114,6 +115,7 @@ public class AuthenticationRepository {
 
     /**
      * Retrieves authentication data for a chat.
+     * Checking expiration date must be done by the caller.
      *
      * @param chatId chat identifier
      * @return authentication data or empty if not found

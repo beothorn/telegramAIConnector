@@ -87,7 +87,7 @@ public class TelegramTools {
     /**
      * Lists all reminders for this chat.
      *
-     * @return human readable descriptions of scheduled reminders
+     * @return human-readable descriptions of scheduled reminders
      */
     @Tool(description = "List the scheduled reminders")
     public String listReminders() {

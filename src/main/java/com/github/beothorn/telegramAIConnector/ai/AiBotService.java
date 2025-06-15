@@ -29,6 +29,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Central point for the AI bot.
+ * Responsible for getting user input and processing using various tools.
+ */
 @Service
 public class AiBotService {
 
@@ -59,7 +63,7 @@ public class AiBotService {
         } else {
             this.falClient = null;
         }
-        String defaultPrompt = "";
+        String defaultPrompt;
         try {
             defaultPrompt = new String(defaultPromptResource.getInputStream().readAllBytes());
         } catch (IOException e) {
@@ -94,10 +98,11 @@ public class AiBotService {
     /**
      * Sends a prompt to the underlying chat client using the provided tools and
      * returns the AI answer.
+     * Using the base llm and tools provided, give returns a useful response.
      *
      * @param chatId      the conversation identifier
-     * @param message     message text
-     * @param toolObjects optional tool instances to enrich the prompt
+     * @param message     the message from the user
+     * @param toolObjects optional tools to be used by the AI
      * @return the AI response or the error message if something fails
      */
     public String prompt(

@@ -14,6 +14,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * Executes commands using tools.
+ * This can be called directly, bypassing the llm.
+ */
 @Service
 public class Commands {
 
@@ -150,7 +154,7 @@ public class Commands {
      * Lists scheduled tasks for a chat.
      *
      * @param chatId chat identifier
-     * @return human readable list of tasks
+     * @return human-readable list of tasks
      */
     public String listTasks(
         final Long chatId
@@ -160,6 +164,8 @@ public class Commands {
 
     /**
      * Lists the available tool callbacks.
+     * This will only list MCPs.
+     * The format is json and it is not ver human-readable.
      *
      * @return descriptions of available tools
      */
@@ -182,6 +188,7 @@ public class Commands {
 
     /**
      * Updates the user profile for a chat.
+     * With this, the user can fully customize the profile, maybe even turn it into a custom prompt.
      *
      * @param chatId  chat identifier
      * @param profile new profile text
