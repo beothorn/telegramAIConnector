@@ -6,6 +6,7 @@ import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
+import com.github.beothorn.telegramAIConnector.ai.tools.AIAnalysisTool;
 import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +54,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final Authentication authentication;
     private final UserRepository userRepository;
     private final Commands commands;
+    private final AIAnalysisTool aiAnalysisTool;
     private final String uploadFolder;
     private final ProcessingStatus processingStatus;
     private String botName = "";
@@ -67,6 +69,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final Authentication authentication,
         final UserRepository userRepository,
         final Commands commands,
+        final AIAnalysisTool aiAnalysisTool,
         final ProcessingStatus processingStatus,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
@@ -77,6 +80,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.authentication = authentication;
         this.userRepository = userRepository;
         this.commands = commands;
+        this.aiAnalysisTool = aiAnalysisTool;
         this.uploadFolder = uploadFolder;
         this.processingStatus = processingStatus;
         this.executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -366,13 +370,21 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
 
         if (update.getMessage().hasPhoto()) {
-            // TODO: Use image model to analyze image
             try {
                 final List<PhotoSize> photos = update.getMessage().getPhoto();
-                final PhotoSize largestPhoto = photos.getLast(); // largest version
+                final PhotoSize largestPhoto = photos.getLast();
                 final String fileId = largestPhoto.getFileId();
+                String stored = downloadAndConsumeFile(chatId, fileId);
 
-                downloadAndConsumeFile(chatId, fileId);
+                String caption = update.getMessage().getCaption();
+                if (stored != null && caption != null && !caption.isBlank()) {
+                    final String fileName = Paths.get(stored).getFileName().toString();
+                    runAsync(
+                        chatId,
+                        "photo" + InstantUtils.currentTimeSeconds(),
+                        () -> aiAnalysisTool.analyzeImage(fileName, caption)
+                    );
+                }
             } catch (Exception e) {
                 logger.error("Failed to process photo", e);
                 sendMessage(chatId, "Failed to process photo: " + e.getMessage());
@@ -436,14 +448,14 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
-    private void downloadAndConsumeFile(
+    private String downloadAndConsumeFile(
         final Long chatId,
         final String fileId
     ) throws TelegramApiException {
-        downloadAndConsumeFile(chatId, fileId, null);
+        return downloadAndConsumeFile(chatId, fileId, null);
     }
 
-    private void downloadAndConsumeFile(Long chatId, String fileId, String fileNameMaybe) throws TelegramApiException {
+    private String downloadAndConsumeFile(Long chatId, String fileId, String fileNameMaybe) throws TelegramApiException {
         final GetFile getFileMethod = new GetFile(fileId);
         final org.telegram.telegrambots.meta.api.objects.File telegramFile = telegramClient.execute(getFileMethod);
 
@@ -461,9 +473,11 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             Files.copy(downloadedFile.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
             sendMessage(chatId, "File saved to: " + destinationPath);
             consumeFile(chatId, destinationPath);
+            return destinationPath.toString();
         } catch (IOException e) {
             logger.error("Error saving file", e);
             sendMessage(chatId, "Error saving file: " + e.getMessage());
+            return null;
         }
     }
 
