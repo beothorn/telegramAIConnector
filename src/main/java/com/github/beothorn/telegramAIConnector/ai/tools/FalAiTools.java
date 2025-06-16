@@ -4,6 +4,7 @@ import ai.fal.client.FalClient;
 import ai.fal.client.Output;
 import ai.fal.client.SubscribeOptions;
 import ai.fal.client.queue.QueueStatus;
+import com.github.beothorn.telegramAIConnector.telegram.TelegramTools;
 import com.github.beothorn.telegramAIConnector.utils.TelegramAIFileUtils;
 import com.google.gson.JsonObject;
 import org.springframework.ai.tool.annotation.Tool;
@@ -22,10 +23,16 @@ public class FalAiTools {
 
     private final FalClient falClient;
     private final String uploadFolder;
+    private final TelegramTools telegramTools;
 
-    public FalAiTools(FalClient falClient, String uploadFolder) {
+    public FalAiTools(
+        final FalClient falClient,
+        final String uploadFolder,
+        final TelegramTools telegramTools
+    ) {
         this.falClient = falClient;
         this.uploadFolder = uploadFolder;
+        this.telegramTools = telegramTools;
     }
 
     private static String toDataUri(Path file) throws Exception {
@@ -87,6 +94,7 @@ public class FalAiTools {
                 Files.createDirectories(parent.toPath());
                 Files.copy(in, dest.toPath());
             }
+            telegramTools.sendFile(outputFileName, outputFileName);
             return "I created a new file " + outputFileName + " on your upload folder with the change you asked.";
         } catch (Exception e) {
             return "Failed to process image: " + e.getMessage();
@@ -135,60 +143,10 @@ public class FalAiTools {
                 Files.createDirectories(parent.toPath());
                 Files.copy(in, dest.toPath());
             }
+            telegramTools.sendFile(outputFileName, outputFileName);
             return "I created a new file " + outputFileName + " on your upload folder.";
         } catch (Exception e) {
             return "Failed to generate image: " + e.getMessage();
-        }
-    }
-
-    /**
-     * Analyses an uploaded image describing its contents and performing OCR.
-     *
-     * @param fileName the uploaded file to analyse
-     * @return the description of the image or an error message
-     */
-    @Tool(description = "Describe the content of an image and transcribe any text found on it.")
-    public String describeImage(
-        @ToolParam(description = "Name of the image located in the Telegram upload folder") String fileName
-    ) {
-        try {
-            File parent = new File(uploadFolder);
-            File source = new File(parent, fileName);
-
-            if (TelegramAIFileUtils.isNotInParentFolder(parent, source)) {
-                return "Invalid file name.";
-            }
-            if (!source.isFile()) {
-                return "File '" + fileName + "' not found.";
-            }
-
-            String dataUri = toDataUri(source.toPath());
-            Map<String, Object> input = Map.of(
-                    "image_url", dataUri,
-                    "prompt", "Describe the image and transcribe any text you find"
-            );
-            Output<JsonObject> result = falClient.subscribe(
-                "fal-ai/llava-1.5-7b",
-                SubscribeOptions.<JsonObject>builder()
-                    .input(input)
-                    .logs(false)
-                    .resultType(JsonObject.class)
-                    .onQueueUpdate(u -> {
-                        if (u instanceof QueueStatus.InProgress progress) {
-                            // ignore logs
-                        }
-                    })
-                    .build()
-            );
-            String description = result.getData().get("text").getAsString();
-
-            String ocr = ocrWithTesseract(source.toPath());
-            if (!ocr.isBlank()) {
-                description += "\nText: " + ocr;
-            }
-            return description;
-        } catch (Exception e) {
-            return "Failed to analyze image: " + e.getMessage();
         }
     }
 
@@ -202,17 +160,6 @@ public class FalAiTools {
             throw new RuntimeException("ffmpeg failed: " + logs);
         }
         return mp3;
-    }
-
-    private static String ocrWithTesseract(Path image) throws Exception {
-        Process process = new ProcessBuilder(
-                "tesseract", image.toString(), "-", "-l", "eng"
-        ).redirectErrorStream(true).start();
-        if (!process.waitFor(30, TimeUnit.SECONDS)) {
-            process.destroy();
-            throw new RuntimeException("tesseract timed out");
-        }
-        return new String(process.getInputStream().readAllBytes()).trim();
     }
 
     /**

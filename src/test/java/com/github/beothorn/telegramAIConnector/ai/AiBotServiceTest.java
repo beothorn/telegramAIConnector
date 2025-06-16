@@ -9,11 +9,10 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.core.io.ByteArrayResource;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AiBotServiceTest {
     @Test
@@ -43,6 +42,7 @@ public class AiBotServiceTest {
                 provider,
                 messagesRepository,
                 advisor,
+                null,
                 "",
                 new ByteArrayResource("def".getBytes()),
                 1,
@@ -50,7 +50,7 @@ public class AiBotServiceTest {
                 "upload"
         );
 
-        String result = service.prompt(1L, "hi");
+        String result = service.prompt(1L, "hi", null);
         assertEquals("answer", result);
     }
 }

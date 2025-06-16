@@ -3,7 +3,10 @@ package com.github.beothorn.telegramAIConnector.ai;
 import ai.fal.client.ClientConfig;
 import ai.fal.client.CredentialsResolver;
 import ai.fal.client.FalClient;
+import com.github.beothorn.telegramAIConnector.ai.tools.AIAnalysisTool;
 import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
+import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
+import com.github.beothorn.telegramAIConnector.telegram.TelegramTools;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.profile.advisors.UserProfileAdvisor;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
@@ -14,6 +17,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -42,6 +46,7 @@ public class AiBotService {
     private final ToolCallbackProvider tools;
     private final UserProfileAdvisor userProfileAdvisor;
     private final FalClient falClient;
+    private final ChatModel chatModel;
     private final String uploadFolder;
 
     public AiBotService(
@@ -49,6 +54,7 @@ public class AiBotService {
         final ToolCallbackProvider tools,
         final MessagesRepository messagesRepository,
         final UserProfileAdvisor userProfileAdvisor,
+        final ChatModel chatModel,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile,
         @Value("classpath:prompt.txt") final Resource defaultPromptResource,
         @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation,
@@ -57,6 +63,7 @@ public class AiBotService {
     ) {
         this.tools = tools;
         this.userProfileAdvisor = userProfileAdvisor;
+        this.chatModel = chatModel;
         this.uploadFolder = uploadFolder;
         if (Strings.isNotBlank(falKey)) {
             this.falClient = FalClient.withConfig(ClientConfig.withCredentials(CredentialsResolver.fromApiKey(falKey)));
@@ -102,13 +109,13 @@ public class AiBotService {
      *
      * @param chatId      the conversation identifier
      * @param message     the message from the user
-     * @param toolObjects optional tools to be used by the AI
+     * @param telegramTools telegram tools to send messages and files
      * @return the AI response or the error message if something fails
      */
     public String prompt(
         final Long chatId,
         final String message,
-        final Object... toolObjects
+        final TelegramTools telegramTools
     ) {
         try {
             logger.debug("Got prompts");
@@ -116,15 +123,17 @@ public class AiBotService {
             final String prompt = "[" + InstantUtils.currentTime() + "] " + message;
 
             ToolCallback[] toolCallbacks = tools.getToolCallbacks();
-            List<ToolCallback> toolCallbackList = new ArrayList<>(Arrays.stream(toolObjects)
-                    .map(ToolCallbacks::from)
-                    .flatMap(Arrays::stream)
-                    .toList());
+            List<ToolCallback> toolCallbackList = new ArrayList<>();
 
+            final String uploadFolderForCurrentChat = uploadFolder + "/" + chatId;
             if (falClient != null) {
-                FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId);
+                FalAiTools falAiTools = new FalAiTools(falClient, uploadFolderForCurrentChat, telegramTools);
                 toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(falAiTools)));
             }
+
+            final AIAnalysisTool aiAnalysisTool = new AIAnalysisTool(chatModel, uploadFolderForCurrentChat);
+            final SystemTools systemTools = new SystemTools();
+            toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(systemTools, aiAnalysisTool)));
 
             toolCallbackList.addAll(Arrays.asList(toolCallbacks));
 
