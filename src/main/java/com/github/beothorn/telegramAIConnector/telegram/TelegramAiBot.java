@@ -261,7 +261,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     ) {
         logger.info("Consume anonymous message: {}", message);
         final TelegramTools telegramTools = getTelegramTools(0L);
-        return aiBotService.prompt(0L, message, telegramTools, new SystemTools());
+        return aiBotService.prompt(0L, message, telegramTools, new SystemTools(), aiAnalysisTool);
     }
 
     /**
@@ -281,7 +281,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final String text = "SystemAction: " + message;
 
         final TelegramTools telegramTools = getTelegramTools(chatId);
-        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools(), aiAnalysisTool);
 
         logger.info("Response to " + chatId + ": " + text);
         sendMarkdownMessage(chatId, response);
@@ -497,6 +497,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /delete file
                     /read file
                     /download file
+                    /analyzeImage fileName [prompt]
                     /listTasks
                     /listTools
                     /profile
@@ -535,6 +536,21 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
         if (command.equalsIgnoreCase("download")) {
             sendMessage(chatId, commands.download(this, chatId, args));
+            return;
+        }
+        if (command.equalsIgnoreCase("analyzeImage")) {
+            if (Strings.isBlank(args)) {
+                sendMessage(chatId, "Usage: /analyzeImage fileName [prompt]");
+            } else {
+                String[] tokens = args.split("\\s+", 2);
+                String file = tokens[0];
+                String prompt = tokens.length > 1 ? tokens[1] : "Describe the image.";
+                runAsync(
+                    chatId,
+                    "analyzeImage" + InstantUtils.currentTimeSeconds(),
+                    () -> aiAnalysisTool.analyzeImage(file, prompt)
+                );
+            }
             return;
         }
         if (command.equalsIgnoreCase("listTasks")) {
@@ -594,7 +610,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             "message" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
-                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools(), aiAnalysisTool);
             }
         );
     }
@@ -611,7 +627,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             "file" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
-                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools(), aiAnalysisTool);
             }
         );
     }
@@ -628,7 +644,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             "location" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
-                return aiBotService.prompt(chatId, locationMessage, telegramTools, new SystemTools());
+                return aiBotService.prompt(chatId, locationMessage, telegramTools, new SystemTools(), aiAnalysisTool);
             }
         );
     }

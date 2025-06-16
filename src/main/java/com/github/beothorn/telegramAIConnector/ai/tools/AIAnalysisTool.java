@@ -28,7 +28,7 @@ public class AIAnalysisTool {
         this.uploadFolder = uploadFolder;
     }
 
-    @Tool(description = "Analyze an uploaded image using the GPT-4o vision model.")
+    @Tool(description = "Analyze or transcribe an image.")
     public String analyzeImage(
             @ToolParam(description = "Name of the file inside Telegram upload folder") String fileName,
             @ToolParam(description = "Prompt describing what to do with the image") String prompt) {
