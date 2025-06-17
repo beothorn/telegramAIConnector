@@ -74,6 +74,18 @@ public class Api {
     }
 
     /**
+     * Sends a plain text message to every known conversation.
+     *
+     * @param message text to broadcast
+     */
+    @PostMapping("/broadcast")
+    public void broadcast(@RequestParam("message") final String message) {
+        for (String id : messagesRepository.findConversationIds()) {
+            telegramAiBot.sendMessage(Long.parseLong(id), message);
+        }
+    }
+
+    /**
      * Sends an anonymous prompt to the bot.
      * This will use chat id 0.
      *

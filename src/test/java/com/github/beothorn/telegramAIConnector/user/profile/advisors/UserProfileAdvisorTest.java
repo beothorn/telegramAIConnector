@@ -18,6 +18,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class UserProfileAdvisorTest {
+    /**
+     * Ensures the advisor stores the profile returned by the AI model.
+     */
     @Test
     void adviseUpdatesProfile() {
         ChatModel model = mock(ChatModel.class);

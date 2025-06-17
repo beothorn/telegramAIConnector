@@ -11,6 +11,9 @@ public class UserProfileRepositoryTest {
     @TempDir
     Path folder;
 
+    /**
+     * Persists and retrieves a profile for a user.
+     */
     @Test
     void setAndGet() {
         UserProfileRepository repo = new UserProfileRepository();

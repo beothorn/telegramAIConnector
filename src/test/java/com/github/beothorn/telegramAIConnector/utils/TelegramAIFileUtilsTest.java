@@ -12,6 +12,9 @@ public class TelegramAIFileUtilsTest {
     @TempDir
     Path folder;
 
+    /**
+     * Validates that files outside the parent folder are detected.
+     */
     @Test
     void detectsOutsideFile() throws Exception {
         File parent = folder.toFile();

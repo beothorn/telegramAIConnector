@@ -18,6 +18,9 @@ public class TelegramToolsTest {
     @TempDir
     Path tempDir;
 
+    /**
+     * Registers a reminder when the given date is in the future.
+     */
     @Test
     void sendReminderSchedulesWhenFutureDate() {
         TaskScheduler scheduler = mock(TaskScheduler.class);
@@ -31,6 +34,9 @@ public class TelegramToolsTest {
         verify(scheduler).schedule(eq(bot), eq(1L), eq("hello"), any(Instant.class));
     }
 
+    /**
+     * Rejects reminders scheduled for past dates.
+     */
     @Test
     void sendReminderRefusesPastDate() {
         TaskScheduler scheduler = mock(TaskScheduler.class);
@@ -44,6 +50,9 @@ public class TelegramToolsTest {
         verifyNoInteractions(scheduler);
     }
 
+    /**
+     * Sends a markdown message using the bot instance.
+     */
     @Test
     void sendMessageDelegatesToBot() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
@@ -55,6 +64,9 @@ public class TelegramToolsTest {
         verify(bot).sendMarkdownMessage(2L, "hello");
     }
 
+    /**
+     * Returns an error message when Telegram fails to send.
+     */
     @Test
     void sendMessageHandlesException() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
@@ -67,6 +79,9 @@ public class TelegramToolsTest {
         assertEquals("Could not send message, got error: 'boom'.", result);
     }
 
+    /**
+     * Delegates file sending to the bot.
+     */
     @Test
     void sendAsFileCallsBot() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
@@ -79,6 +94,9 @@ public class TelegramToolsTest {
         verify(bot).sendFileWithCaption(eq(3L), anyString(), contains("t.txt"));
     }
 
+    /**
+     * Saves content to a file and reads it back.
+     */
     @Test
     void saveAndReadFileWorks() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
@@ -92,6 +110,9 @@ public class TelegramToolsTest {
         assertEquals("data", content);
     }
 
+    /**
+     * Deletes an existing file from disk.
+     */
     @Test
     void deleteFileRemovesFile() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
@@ -105,6 +126,9 @@ public class TelegramToolsTest {
         assertEquals("The file 'a.txt' was deleted.", msg);
     }
 
+    /**
+     * Rejects deletion when the file path escapes the chat directory.
+     */
     @Test
     void deleteFileInvalidName() {
         TaskScheduler scheduler = mock(TaskScheduler.class);

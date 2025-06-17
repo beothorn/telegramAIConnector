@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UserInfoTest {
+    /**
+     * Confirms all record getters return the constructor values.
+     */
     @Test
     void recordValues() {
         UserInfo info = new UserInfo(1L,"u","f","l");
