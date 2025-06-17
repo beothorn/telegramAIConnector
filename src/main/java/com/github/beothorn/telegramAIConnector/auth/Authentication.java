@@ -121,6 +121,16 @@ public class Authentication {
         authenticationRepository.addAuthEntry(chatId, passwordHash, false, null);
     }
 
+    /**
+     * Removes authentication information for a chat.
+     *
+     * @param chatId chat identifier
+     */
+    public void deleteAuthData(long chatId) {
+        authenticationRepository.deleteAuthData(chatId);
+        loggedChats.remove(chatId);
+    }
+
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

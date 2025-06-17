@@ -92,4 +92,20 @@ public class UserProfileRepository {
         }
     }
 
+    /**
+     * Deletes the stored profile for a chat.
+     *
+     * @param chatId chat identifier
+     */
+    public void deleteProfile(long chatId) {
+        String sql = "DELETE FROM users_profile WHERE chatId = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, chatId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to delete profile for chatId: {}", chatId, e);
+        }
+    }
+
 }

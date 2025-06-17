@@ -20,13 +20,18 @@
 <h2>Conversations</h2>
 <table>
     <thead>
-    <tr><th>Chat Id</th><th>Name</th><th>Username</th></tr>
+    <tr><th>Chat Id</th><th>Name</th><th>Username</th><th class="actions">Delete</th></tr>
     </thead>
     <tbody>
     <tr th:each="u : ${conversations}">
         <td><a th:href="@{|/backoffice/conversations/${u.chatId}|}" th:text="${u.chatId}"></a></td>
         <td th:text="${u.firstName} + ' ' + ${u.lastName}"></td>
         <td th:text="${u.username}"></td>
+        <td class="actions">
+            <form th:action="@{|/api/conversations/${u.chatId}|}" data-fetch data-method="DELETE">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
     </tr>
     </tbody>
 </table>

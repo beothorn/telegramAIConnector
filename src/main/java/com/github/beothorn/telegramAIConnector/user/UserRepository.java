@@ -98,4 +98,20 @@ public class UserRepository {
         }
         return null;
     }
+
+    /**
+     * Deletes a stored user.
+     *
+     * @param chatId chat identifier
+     */
+    public void deleteUser(long chatId) {
+        String sql = "DELETE FROM users WHERE chatId = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, chatId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to delete user with chatId {}", chatId, e);
+        }
+    }
 }

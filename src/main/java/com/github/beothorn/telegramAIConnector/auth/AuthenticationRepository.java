@@ -146,4 +146,20 @@ public class AuthenticationRepository {
             return Optional.empty();
         }
     }
+
+    /**
+     * Deletes authentication data for a chat.
+     *
+     * @param chatId chat identifier
+     */
+    public void deleteAuthData(long chatId) {
+        String sql = "DELETE FROM auth WHERE chatId = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, chatId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to delete auth data for chatId {}", chatId, e);
+        }
+    }
 }
