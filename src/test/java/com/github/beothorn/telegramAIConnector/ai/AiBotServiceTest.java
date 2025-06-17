@@ -43,10 +43,10 @@ public class AiBotServiceTest {
                 messagesRepository,
                 advisor,
                 null,
+                null,
                 "",
                 new ByteArrayResource("def".getBytes()),
                 1,
-                "",
                 "upload"
         );
 

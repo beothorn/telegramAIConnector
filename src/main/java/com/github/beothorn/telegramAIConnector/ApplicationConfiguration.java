@@ -1,5 +1,10 @@
 package com.github.beothorn.telegramAIConnector;
 
+import ai.fal.client.ClientConfig;
+import ai.fal.client.CredentialsResolver;
+import ai.fal.client.FalClient;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
@@ -26,5 +31,15 @@ public class ApplicationConfiguration {
     @Bean
     public HiddenHttpMethodFilter hiddenHttpMethodFilter() {
         return new HiddenHttpMethodFilter();
+    }
+
+    @Bean
+    public FalClient client(
+        @Value("${fal.key:}") final String falKey
+    ) {
+        if (Strings.isNotBlank(falKey)) {
+            return FalClient.withConfig(ClientConfig.withCredentials(CredentialsResolver.fromApiKey(falKey)));
+        }
+        return null;
     }
 }

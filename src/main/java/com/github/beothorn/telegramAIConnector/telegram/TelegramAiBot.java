@@ -1,7 +1,9 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
+import ai.fal.client.FalClient;
 import com.github.beothorn.telegramAIConnector.ai.AiBotService;
 import com.github.beothorn.telegramAIConnector.ai.tools.AIAnalysisTool;
+import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
 import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
@@ -55,6 +57,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final UserRepository userRepository;
     private final Commands commands;
     private final AIAnalysisTool aiAnalysisTool;
+    private final FalClient falClient;
     private final String uploadFolder;
     private final ProcessingStatus processingStatus;
     private String botName = "";
@@ -70,11 +73,13 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final UserRepository userRepository,
         final Commands commands,
         final ChatModel chatModel,
+        final FalClient falClient,
         final ProcessingStatus processingStatus,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.aiBotService = aiBotService;
+        this.falClient = falClient;
         this.telegramClient = new OkHttpTelegramClient(botToken);
         this.taskScheduler = taskScheduler;
         this.authentication = authentication;
@@ -505,6 +510,12 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /logout
                     /changePassword newPass
                     /doing""";
+        if (falClient != null) {
+            availableCommands += """
+                    
+                    /generateImage fileName [prompt]
+                    """;
+        }
 
         if (command.equalsIgnoreCase("help")) {
             sendMessage(chatId, availableCommands);
@@ -548,10 +559,34 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                 runAsync(
                     chatId,
                     "analyzeImage" + InstantUtils.currentTimeSeconds(),
-                    () -> aiAnalysisTool.analyzeImage(file, prompt)
+                    () -> aiAnalysisTool.analyzeImageForChatId(file, prompt, chatId)
                 );
             }
             return;
+        }
+        if (falClient != null) {
+            final TelegramTools telegramTools = new TelegramTools(
+                    this,
+                    taskScheduler,
+                    chatId,
+                    uploadFolder
+            );
+            FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId, telegramTools);
+            if (command.equalsIgnoreCase("generateImage")) {
+                if (Strings.isBlank(args)) {
+                    sendMessage(chatId, "Usage: /generateImage fileName [prompt]");
+                } else {
+                    String[] tokens = args.split("\\s+", 2);
+                    String file = tokens[0];
+                    String prompt = tokens.length > 1 ? tokens[1] : "";
+                    runAsync(
+                            chatId,
+                            "generateImage" + InstantUtils.currentTimeSeconds(),
+                            () -> falAiTools.generateImage(prompt, file)
+                    );
+                }
+                return;
+            }
         }
         if (command.equalsIgnoreCase("listTasks")) {
             sendMessage(chatId, commands.listTasks(chatId));

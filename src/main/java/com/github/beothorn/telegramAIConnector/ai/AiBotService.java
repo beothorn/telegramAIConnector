@@ -1,7 +1,5 @@
 package com.github.beothorn.telegramAIConnector.ai;
 
-import ai.fal.client.ClientConfig;
-import ai.fal.client.CredentialsResolver;
 import ai.fal.client.FalClient;
 import com.github.beothorn.telegramAIConnector.ai.tools.AIAnalysisTool;
 import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
@@ -55,21 +53,18 @@ public class AiBotService {
         final MessagesRepository messagesRepository,
         final UserProfileAdvisor userProfileAdvisor,
         final ChatModel chatModel,
+        final FalClient falClient,
         @Value("${telegramIAConnector.systemPromptFile}") final String systemPromptFile,
         @Value("classpath:prompt.txt") final Resource defaultPromptResource,
         @Value("${telegramIAConnector.messagesOnConversation}") final int messagesOnConversation,
-        @Value("${fal.key:}") final String falKey,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.tools = tools;
         this.userProfileAdvisor = userProfileAdvisor;
         this.chatModel = chatModel;
         this.uploadFolder = uploadFolder;
-        if (Strings.isNotBlank(falKey)) {
-            this.falClient = FalClient.withConfig(ClientConfig.withCredentials(CredentialsResolver.fromApiKey(falKey)));
-        } else {
-            this.falClient = null;
-        }
+        this.falClient = falClient;
+
         String defaultPrompt;
         try {
             defaultPrompt = new String(defaultPromptResource.getInputStream().readAllBytes());

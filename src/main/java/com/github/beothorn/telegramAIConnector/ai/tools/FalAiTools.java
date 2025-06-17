@@ -50,9 +50,9 @@ public class FalAiTools {
      * @param fileName      name of the uploaded file to edit
      * @param prompt        textual description of the transformation
      * @param outputFileName resulting file name
-     * @return a user friendly message about the operation result
+     * @return a user-friendly message about the operation result
      */
-    @Tool(description = "AI to edit images with an image and a text describing the transformation as input and a transformed image as output.")
+    @Tool(description = "Tool to edit images with an image and a text describing the transformation as input and a transformed image as output.")
     public String editImage(
         @ToolParam(description = "Name of the source image located in the Telegram upload folder") String fileName,
         @ToolParam(description = "Instruction describing the desired modification") String prompt,
@@ -108,7 +108,7 @@ public class FalAiTools {
      * @param outputFileName file name to store the generated image under
      * @return operation status message
      */
-    @Tool(description = "AI to generate images from a text prompt.")
+    @Tool(description = "Tool to generate images from a text prompt.")
     public String generateImage(
         @ToolParam(description = "Instruction describing the desired image") String prompt,
         @ToolParam(description = "Name of the output image to be created") String outputFileName
@@ -121,12 +121,24 @@ public class FalAiTools {
                 return "Invalid file name.";
             }
 
+            if (TelegramAIFileUtils.isNotInParentFolder(parent, dest)) {
+                return "Invalid file name.";
+            }
+
+            String newOutputFileName = outputFileName;
+            int i = 0;
+            while (dest.exists()) {
+                newOutputFileName = i + outputFileName;
+                dest = new File(parent, newOutputFileName);
+                i++;
+            }
+
             Map<String, Object> input = Map.of(
                     "prompt", prompt,
-                    "safety_tolerance", "5" // Allow most permissive generation
+                    "enable_safety_checker", "false" // Allow most permissive generation
             );
             Output<JsonObject> result = falClient.subscribe(
-                "fal-ai/fast-sdxl",
+                "fal-ai/flux-pro/v1.1-ultra",
                 SubscribeOptions.<JsonObject>builder()
                     .input(input)
                     .logs(false)
@@ -138,12 +150,18 @@ public class FalAiTools {
                     })
                     .build()
             );
-            String url = result.getData().getAsJsonArray("images").get(0).getAsJsonObject().get("url").getAsString();
+            String url = result
+                    .getData()
+                    .getAsJsonArray("images")
+                    .get(0)
+                    .getAsJsonObject()
+                    .get("url")
+                    .getAsString();
             try (InputStream in = new URL(url).openStream()) {
                 Files.createDirectories(parent.toPath());
                 Files.copy(in, dest.toPath());
             }
-            telegramTools.sendFile(outputFileName, outputFileName);
+            telegramTools.sendFile(newOutputFileName, outputFileName);
             return "I created a new file " + outputFileName + " on your upload folder.";
         } catch (Exception e) {
             return "Failed to generate image: " + e.getMessage();
@@ -168,7 +186,7 @@ public class FalAiTools {
      * @param fileName name of the audio file located inside the upload folder
      * @return the transcribed text or an error message
      */
-    @Tool(description = "Transcribes an audio file.")
+    @Tool(description = "Tool to transcribes an audio file.")
     public String audioToText(
         @ToolParam(description = "Name of the audio file located in the Telegram upload folder") String fileName
     ) {

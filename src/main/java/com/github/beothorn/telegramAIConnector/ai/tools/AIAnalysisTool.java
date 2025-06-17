@@ -28,7 +28,7 @@ public class AIAnalysisTool {
         this.uploadFolder = uploadFolder;
     }
 
-    @Tool(description = "AI to analyze or transcribe an image, returns a string with the result.")
+    @Tool(description = "Tool to analyze or transcribe an image, returns a string with the result.")
     public String analyzeImage(
         @ToolParam(description = "Name of the source image located in the Telegram upload folder") final String fileName,
         @ToolParam(description = "Prompt with the command to analyze or process the image") final String prompt
