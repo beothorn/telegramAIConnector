@@ -10,6 +10,10 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SystemToolsTest {
+
+    /**
+     * Ensures current date is parsed successfully.
+     */
     @Test
     void getCurrentDateTimeMatchesFormat() {
         LocaleContextHolder.setLocale(Locale.US);

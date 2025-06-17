@@ -1,16 +1,21 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
-import org.junit.jupiter.api.Test;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
+import org.junit.jupiter.api.Test;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.definition.DefaultToolDefinition;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CommandsTest {
+
+    /**
+     * Assert list tools list the tools, in whatever format it current is returning them.
+     */
     @Test
     void listToolsFormatsOutput() {
         ToolCallback tool1 = mock(ToolCallback.class);

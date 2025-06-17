@@ -5,9 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class RecoverOnStartupTest {
+
+    /**
+     * Make sure that when restarting, all tasks are recovered (so the futures can be recreated)
+     */
     @Test
     void callsRestoreOnEvent() {
         TaskScheduler scheduler = mock(TaskScheduler.class);

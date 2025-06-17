@@ -39,6 +39,9 @@ public class AuthenticationTest {
         repo = new InMemoryRepo();
     }
 
+    /**
+     * Make sure we can log in with master password.
+     */
     @Test
     void loginWithMasterPasswordCreatesEntry() {
         Authentication auth = new Authentication(repo, "master");
@@ -47,6 +50,9 @@ public class AuthenticationTest {
         assertTrue(repo.getAuthData(10L).isPresent());
     }
 
+    /**
+     * Asserts regular login works after setting a new password.
+     */
     @Test
     void loginWithUserPasswordChecksHash() {
         Authentication auth = new Authentication(repo, "master");
@@ -55,6 +61,9 @@ public class AuthenticationTest {
         assertFalse(auth.isNotLogged(20L));
     }
 
+    /**
+     * Ensures if a user changes the password, logging in with master password is not possible anymore.
+     */
     @Test
     void loginWithMasterOnlyWorksForUserWithNoPass() {
         Authentication auth = new Authentication(repo, "master");

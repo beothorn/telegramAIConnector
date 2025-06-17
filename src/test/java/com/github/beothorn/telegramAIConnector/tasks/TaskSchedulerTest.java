@@ -10,6 +10,10 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.Mockito.*;
 
 public class TaskSchedulerTest {
+
+    /**
+     * Assert scheduling a task works.
+     */
     @Test
     void scheduledTaskRuns() {
         TaskRepository repo = mock(TaskRepository.class);
@@ -19,6 +23,9 @@ public class TaskSchedulerTest {
         Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> verify(bot).execute(1L,"cmd"));
     }
 
+    /**
+     * Assert cancelling a task works and the task is deleted.
+     */
     @Test
     void cancelRemovesTask() {
         TaskRepository repo = mock(TaskRepository.class);

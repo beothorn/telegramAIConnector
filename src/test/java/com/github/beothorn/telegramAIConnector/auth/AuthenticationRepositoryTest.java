@@ -6,12 +6,16 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AuthenticationRepositoryTest {
     @TempDir
     Path folder;
 
+    /**
+     * Tests that authentication repository persists and recover auth data correctly.
+     */
     @Test
     void addAndRetrieve() {
         AuthenticationRepository repo = new AuthenticationRepository();

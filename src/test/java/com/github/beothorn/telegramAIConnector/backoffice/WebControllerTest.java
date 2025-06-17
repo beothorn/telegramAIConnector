@@ -9,9 +9,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ui.ExtendedModelMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class WebControllerTest {
+
+    /**
+     * Check that bot name is present on model (so we can display it on the page).
+     */
     @Test
     void indexAddsAttributes() {
         TaskRepository tasks = mock(TaskRepository.class);

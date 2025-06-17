@@ -15,6 +15,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ApiTest {
+
+    /**
+     * Smoke test api, check that all conversations returns when getting them.
+     * @throws Exception
+     */
     @Test
     void getConversationIdsDelegates() throws Exception {
         TelegramAiBot bot = mock(TelegramAiBot.class);

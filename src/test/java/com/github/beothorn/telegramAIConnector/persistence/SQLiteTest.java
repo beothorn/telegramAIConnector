@@ -11,6 +11,11 @@ import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.*;
 
 public class SQLiteTest {
+
+    /**
+     * Check all bases are initialized.
+     * Maybe in the future some migration library could be used.
+     */
     @Test
     void constructorInitializesRepositories() {
         MessagesRepository m = mock(MessagesRepository.class);
