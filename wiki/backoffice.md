@@ -8,6 +8,7 @@ and manage conversations, scheduled tasks, user profiles and uploaded files.
 Open `http://yourAddress:9996/backoffice` to access the index. The page shows:
 
 * A form to send anonymous prompts using the `/api/prompt` endpoint.
+* A form to broadcast a message to all known chats using `/api/broadcast`.
 * A table with the known conversation ids. Each id links to a conversation page and has a delete button.
 * A table listing all scheduled tasks stored in the database.
 

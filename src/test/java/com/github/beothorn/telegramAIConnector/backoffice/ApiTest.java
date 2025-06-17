@@ -34,4 +34,25 @@ public class ApiTest {
         Api api = new Api(bot,tasks,messages,auth,profiles,files, users);
         assertEquals(List.of("1"), api.getConversationIds());
     }
+
+    /**
+     * Broadcasts a message to every chat id returned by the repository.
+     */
+    @Test
+    void broadcastDelegates() {
+        TelegramAiBot bot = mock(TelegramAiBot.class);
+        TaskRepository tasks = mock(TaskRepository.class);
+        MessagesRepository messages = mock(MessagesRepository.class);
+        Authentication auth = mock(Authentication.class);
+        UserProfileRepository profiles = mock(UserProfileRepository.class);
+        UserRepository users = mock(UserRepository.class);
+        FileService files = mock(FileService.class);
+
+        when(messages.findConversationIds()).thenReturn(List.of("1","2"));
+        Api api = new Api(bot,tasks,messages,auth,profiles,files, users);
+        api.broadcast("hi");
+
+        org.mockito.Mockito.verify(bot).sendMessage(1L, "hi");
+        org.mockito.Mockito.verify(bot).sendMessage(2L, "hi");
+    }
 }

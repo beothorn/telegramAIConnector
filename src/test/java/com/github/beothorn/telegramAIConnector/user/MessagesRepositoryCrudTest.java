@@ -12,6 +12,9 @@ public class MessagesRepositoryCrudTest {
     @TempDir
     Path tempDir;
 
+    /**
+     * Stores a message, updates its content and then deletes it.
+     */
     @Test
     void insertUpdateDeleteMessage() {
         MessagesRepository repo = new MessagesRepository(50);

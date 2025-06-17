@@ -7,6 +7,9 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InstantUtilsTest {
+    /**
+     * Checks that a formatted instant can be parsed back.
+     */
     @Test
     void formatAndParse() {
         Instant now = Instant.now();

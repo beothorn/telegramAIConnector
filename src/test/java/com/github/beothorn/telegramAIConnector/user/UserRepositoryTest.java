@@ -11,6 +11,9 @@ public class UserRepositoryTest {
     @TempDir
     Path tempDir;
 
+    /**
+     * Inserts a user record and updates it.
+     */
     @Test
     void createAndRetrieveUser() {
         UserRepository repo = new UserRepository();
