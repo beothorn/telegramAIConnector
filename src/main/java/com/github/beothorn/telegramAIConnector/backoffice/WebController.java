@@ -61,7 +61,15 @@ public class WebController {
     @GetMapping({"", "/"})
     public String index(Model model) {
         model.addAttribute("botName", telegramAiBot.getBotName());
-        model.addAttribute("conversations", messagesRepository.findConversationIds());
+        var conversationIds = messagesRepository.findConversationIds();
+        var conversationInfos = conversationIds.stream().map(id -> {
+            var user = userRepository.getUser(Long.parseLong(id));
+            if (user == null) {
+                return new com.github.beothorn.telegramAIConnector.user.UserInfo(Long.parseLong(id), "", "", "");
+            }
+            return user;
+        }).toList();
+        model.addAttribute("conversations", conversationInfos);
         model.addAttribute("tasks", taskRepository.getAll());
         return "backoffice";
     }
