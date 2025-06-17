@@ -15,6 +15,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AiBotServiceTest {
+
+    /**
+     * Asserts that the prompt gets processed.
+     * This is a wiring test and very prone to be changed as it tests internal structure.
+     * If spring changes, we will probably need to change this test.
+     */
     @Test
     void promptDelegatesToChatClient() {
         ChatClient.Builder builder = mock(ChatClient.Builder.class);

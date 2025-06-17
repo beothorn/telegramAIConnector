@@ -14,6 +14,9 @@ public class FalAiToolsTest {
     @TempDir
     Path folder;
 
+    /**
+     * Asserts that when trying to edit an image that does not exist, a not found message will be returned.
+     */
     @Test
     void editImageReturnsNotFoundForMissingFile() {
         FalAiTools tools = new FalAiTools(mock(FalClient.class), folder.toString(), mock(TelegramTools.class));

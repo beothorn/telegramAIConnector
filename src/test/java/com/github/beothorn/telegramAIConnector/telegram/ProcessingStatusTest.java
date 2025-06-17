@@ -3,15 +3,18 @@ package com.github.beothorn.telegramAIConnector.telegram;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class ProcessingStatusTest {
 
+    /**
+     * Asserts that the user can see the current things the bot is processing in different threads.
+     */
     @Test
     void registerShowsStatusUntilThreadEnds() {
         final ProcessingStatus status = new ProcessingStatus();
@@ -34,6 +37,9 @@ public class ProcessingStatusTest {
         executor.shutdown();
     }
 
+    /**
+     * Make sure there is one thread per thing the bot is doing.
+     */
     @Test
     void multipleThreadsKeepIndependentStatuses() {
         final ProcessingStatus status = new ProcessingStatus();

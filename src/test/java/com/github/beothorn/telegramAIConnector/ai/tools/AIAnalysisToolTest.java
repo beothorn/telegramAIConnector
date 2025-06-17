@@ -6,13 +6,20 @@ import org.springframework.ai.chat.model.ChatModel;
 
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
+/**
+ * The tool is used by the AI.
+ */
 public class AIAnalysisToolTest {
     @TempDir
     Path folder;
 
+    /**
+     * Asserts that missing file returns a message saying that the file was not found.
+     */
     @Test
     void analyzeImageMissingFile() {
         ChatModel model = mock(ChatModel.class);
@@ -21,6 +28,9 @@ public class AIAnalysisToolTest {
         assertTrue(msg.contains("not found"));
     }
 
+    /**
+     * Asserts that the user cannot try to escape the chat id folder by using a relative file path.
+     */
     @Test
     void analyzeImageInvalidPath() {
         ChatModel model = mock(ChatModel.class);

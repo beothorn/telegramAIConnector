@@ -7,6 +7,7 @@ import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.StoredMessage;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
+import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class Api {
     private final Authentication authentication;
     private final UserProfileRepository userProfileRepository;
     private final FileService fileService;
+    private final UserRepository userRepository;
 
     /**
      * Creates a REST API with required dependencies.
@@ -43,7 +45,8 @@ public class Api {
         final MessagesRepository messagesRepository,
         final Authentication authentication,
         final UserProfileRepository userProfileRepository,
-        final FileService fileService
+        final FileService fileService,
+        final UserRepository userRepository
     ) {
         this.telegramAiBot = telegramAiBot;
         this.taskRepository = taskRepository;
@@ -51,6 +54,7 @@ public class Api {
         this.authentication = authentication;
         this.userProfileRepository = userProfileRepository;
         this.fileService = fileService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -153,6 +157,12 @@ public class Api {
     @DeleteMapping("/conversations/{chatId}")
     public void deleteConversation(@PathVariable String chatId) {
         messagesRepository.deleteByConversationId(chatId);
+        long id = Long.parseLong(chatId);
+        taskRepository.deleteByChatId(id);
+        userProfileRepository.deleteProfile(id);
+        authentication.deleteAuthData(id);
+        userRepository.deleteUser(id);
+        fileService.deleteAll(id);
     }
 
     /**

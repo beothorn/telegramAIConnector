@@ -63,6 +63,14 @@
 </div>
 
 <div class="section">
+<h2>Password</h2>
+<form th:action="@{|/api/conversations/${chatId}/auth|}" data-fetch data-method="POST" class="wide-form">
+    <input type="password" name="password"/>
+    <button type="submit">Change</button>
+</form>
+</div>
+
+<div class="section">
 <h2>Files</h2>
 <table>
     <tr><th>Name</th><th class="actions">Download</th><th class="actions">Delete</th><th>Rename</th></tr>
@@ -104,6 +112,12 @@
         </td>
     </tr>
 </table>
+</div>
+
+<div class="section">
+<form th:action="@{|/api/conversations/${chatId}|}" data-fetch data-method="DELETE">
+    <button type="submit">Delete Chat</button>
+</form>
 </div>
 
 <a th:href="@{/backoffice}">Back</a>

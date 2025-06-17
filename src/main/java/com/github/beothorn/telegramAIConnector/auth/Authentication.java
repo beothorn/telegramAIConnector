@@ -66,7 +66,11 @@ public class Authentication {
         final String passwordLogin
     ) {
         logger.info("Chat {} logging in.", chatId);
-        if (Strings.isNotBlank(password) && Strings.isNotBlank(passwordLogin) && password.equals(passwordLogin)) {
+        if (Strings.isNotBlank(password)
+                && Strings.isNotBlank(passwordLogin)
+                && password.equals(passwordLogin)
+                && authenticationRepository.getAuthData(chatId).isEmpty()
+        ) {
             logger.info("Chat {} used master password.", chatId);
             return setLoggedInWithMasterPassword(chatId);
         }
@@ -88,8 +92,6 @@ public class Authentication {
     }
 
     private boolean setLoggedInWithMasterPassword(Long chatId) {
-        // If user does not exist, create one with master pass, if not, should use user password
-        if(authenticationRepository.getAuthData(chatId).isPresent()) return false;
         logger.info("Setting chatId {} as logged", chatId);
         String masterPassHash = hashPassword(password);
         String expirationDate = LocalDate.now().plusMonths(2).toString();
@@ -119,6 +121,16 @@ public class Authentication {
         String passwordHash = hashPassword(passwordLogin);
         logger.info("Setting password for chatId {}", chatId);
         authenticationRepository.addAuthEntry(chatId, passwordHash, false, null);
+    }
+
+    /**
+     * Removes authentication information for a chat.
+     *
+     * @param chatId chat identifier
+     */
+    public void deleteAuthData(long chatId) {
+        authenticationRepository.deleteAuthData(chatId);
+        loggedChats.remove(chatId);
     }
 
     private String hashPassword(String password) {

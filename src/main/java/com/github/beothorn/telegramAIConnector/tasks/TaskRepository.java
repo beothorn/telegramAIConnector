@@ -135,4 +135,20 @@ public class TaskRepository {
             throw new RuntimeException("Failed to delete task", e);
         }
     }
+
+    /**
+     * Deletes all tasks scheduled for a chat.
+     *
+     * @param chatId chat identifier
+     */
+    public void deleteByChatId(long chatId) {
+        String sql = "DELETE FROM tasks WHERE chatId = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, chatId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete tasks", e);
+        }
+    }
 }

@@ -195,12 +195,19 @@ public class MessagesRepository implements ChatMemoryRepository {
 
     @Override
     /**
-     * Deleting conversations is intentionally disabled.
+     * Deletes all messages of a conversation.
      *
      * @param conversationId conversation identifier
      */
     public void deleteByConversationId(@NotNull final String conversationId) {
-        // Never forget
+        String sql = "DELETE FROM messages WHERE chatId = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, conversationId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete conversation", e);
+        }
     }
 
     /**

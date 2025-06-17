@@ -125,4 +125,27 @@ public class FileService {
         }
         file.transferTo(dest);
     }
+
+    /**
+     * Deletes all files from the chat folder.
+     *
+     * @param chatId chat identifier
+     */
+    public void deleteAll(Long chatId) {
+        File dir = baseDir(chatId);
+        if (!dir.exists()) return;
+        deleteRecursive(dir);
+    }
+
+    private void deleteRecursive(File file) {
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null) {
+                for (File c : children) {
+                    deleteRecursive(c);
+                }
+            }
+        }
+        file.delete();
+    }
 }
