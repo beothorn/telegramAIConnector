@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.Arrays;
 
 public class TelegramTools {
 
@@ -154,17 +155,20 @@ public class TelegramTools {
         if (!dir.exists() || !dir.isDirectory()) {
             return "No file was uploaded yet.";
         }
+
         StringBuilder result = new StringBuilder();
         File[] files = dir.listFiles();
-        if (files == null) {
+        if (files == null || files.length == 0) {
             return "There are no files on Telegram upload folder.";
         }
-        if (files.length == 0) {
-            return "There are no files on Telegram upload folder.";
-        }
+
+        // Sort files by name
+        Arrays.sort(files, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
+
         for (File file : files) {
             result.append(file.getName()).append("\n");
         }
+
         return "The files are:\n" + result;
     }
 

@@ -18,12 +18,6 @@ Arguments:
 - `prompt` – description of the image to generate.
 - `outputFileName` – file name for the generated image.
 
-## describeImage
-Runs an image through `fal-ai/llava-1.5-7b` and returns a description and OCR text.
-
-Argument:
-- `fileName` – uploaded image to analyse.
-
 ## audioToText
 Transcribes an audio file with the `fal-ai/whisper` model.
 

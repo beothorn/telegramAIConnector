@@ -1,7 +1,9 @@
 package com.github.beothorn.telegramAIConnector.telegram;
 
+import ai.fal.client.FalClient;
 import com.github.beothorn.telegramAIConnector.ai.AiBotService;
-import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
+import com.github.beothorn.telegramAIConnector.ai.tools.AIAnalysisTool;
+import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
 import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
@@ -11,6 +13,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
@@ -53,6 +56,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final Authentication authentication;
     private final UserRepository userRepository;
     private final Commands commands;
+    private final AIAnalysisTool aiAnalysisTool;
+    private final FalClient falClient;
     private final String uploadFolder;
     private final ProcessingStatus processingStatus;
     private String botName = "";
@@ -67,16 +72,20 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final Authentication authentication,
         final UserRepository userRepository,
         final Commands commands,
+        final ChatModel chatModel,
+        final FalClient falClient,
         final ProcessingStatus processingStatus,
         @Value("${telegram.key}") final String botToken,
         @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.aiBotService = aiBotService;
+        this.falClient = falClient;
         this.telegramClient = new OkHttpTelegramClient(botToken);
         this.taskScheduler = taskScheduler;
         this.authentication = authentication;
         this.userRepository = userRepository;
         this.commands = commands;
+        this.aiAnalysisTool = new AIAnalysisTool(chatModel, uploadFolder);
         this.uploadFolder = uploadFolder;
         this.processingStatus = processingStatus;
         this.executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -257,7 +266,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     ) {
         logger.info("Consume anonymous message: {}", message);
         final TelegramTools telegramTools = getTelegramTools(0L);
-        return aiBotService.prompt(0L, message, telegramTools, new SystemTools());
+        return aiBotService.prompt(0L, message, telegramTools);
     }
 
     /**
@@ -277,7 +286,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final String text = "SystemAction: " + message;
 
         final TelegramTools telegramTools = getTelegramTools(chatId);
-        final String response = aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+        final String response = aiBotService.prompt(chatId, text, telegramTools);
 
         logger.info("Response to " + chatId + ": " + text);
         sendMarkdownMessage(chatId, response);
@@ -366,13 +375,21 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
 
         if (update.getMessage().hasPhoto()) {
-            // TODO: Use image model to analyze image
             try {
                 final List<PhotoSize> photos = update.getMessage().getPhoto();
-                final PhotoSize largestPhoto = photos.getLast(); // largest version
+                final PhotoSize largestPhoto = photos.getLast();
                 final String fileId = largestPhoto.getFileId();
+                String stored = downloadAndConsumeFile(chatId, fileId);
 
-                downloadAndConsumeFile(chatId, fileId);
+                String caption = update.getMessage().getCaption();
+                if (stored != null && caption != null && !caption.isBlank()) {
+                    final String fileName = Paths.get(stored).getFileName().toString();
+                    runAsync(
+                        chatId,
+                        "photo" + InstantUtils.currentTimeSeconds(),
+                        () -> aiAnalysisTool.analyzeImageForChatId(fileName, caption, chatId)
+                    );
+                }
             } catch (Exception e) {
                 logger.error("Failed to process photo", e);
                 sendMessage(chatId, "Failed to process photo: " + e.getMessage());
@@ -436,14 +453,14 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
-    private void downloadAndConsumeFile(
+    private String downloadAndConsumeFile(
         final Long chatId,
         final String fileId
     ) throws TelegramApiException {
-        downloadAndConsumeFile(chatId, fileId, null);
+        return downloadAndConsumeFile(chatId, fileId, null);
     }
 
-    private void downloadAndConsumeFile(Long chatId, String fileId, String fileNameMaybe) throws TelegramApiException {
+    private String downloadAndConsumeFile(Long chatId, String fileId, String fileNameMaybe) throws TelegramApiException {
         final GetFile getFileMethod = new GetFile(fileId);
         final org.telegram.telegrambots.meta.api.objects.File telegramFile = telegramClient.execute(getFileMethod);
 
@@ -459,11 +476,13 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             Files.createDirectories(outputDir);
             final Path destinationPath = outputDir.resolve(fileName);
             Files.copy(downloadedFile.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
-            sendMessage(chatId, "File saved to: " + destinationPath);
+            sendMessage(chatId, "File saved: " + fileName);
             consumeFile(chatId, destinationPath);
+            return destinationPath.toString();
         } catch (IOException e) {
             logger.error("Error saving file", e);
             sendMessage(chatId, "Error saving file: " + e.getMessage());
+            return null;
         }
     }
 
@@ -483,6 +502,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /delete file
                     /read file
                     /download file
+                    /analyzeImage fileName [prompt]
                     /listTasks
                     /listTools
                     /profile
@@ -490,6 +510,12 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /logout
                     /changePassword newPass
                     /doing""";
+        if (falClient != null) {
+            availableCommands += """
+                    
+                    /generateImage fileName [prompt]
+                    """;
+        }
 
         if (command.equalsIgnoreCase("help")) {
             sendMessage(chatId, availableCommands);
@@ -522,6 +548,45 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         if (command.equalsIgnoreCase("download")) {
             sendMessage(chatId, commands.download(this, chatId, args));
             return;
+        }
+        if (command.equalsIgnoreCase("analyzeImage")) {
+            if (Strings.isBlank(args)) {
+                sendMessage(chatId, "Usage: /analyzeImage fileName [prompt]");
+            } else {
+                String[] tokens = args.split("\\s+", 2);
+                String file = tokens[0];
+                String prompt = tokens.length > 1 ? tokens[1] : "Describe the image.";
+                runAsync(
+                    chatId,
+                    "analyzeImage" + InstantUtils.currentTimeSeconds(),
+                    () -> aiAnalysisTool.analyzeImageForChatId(file, prompt, chatId)
+                );
+            }
+            return;
+        }
+        if (falClient != null) {
+            final TelegramTools telegramTools = new TelegramTools(
+                    this,
+                    taskScheduler,
+                    chatId,
+                    uploadFolder
+            );
+            FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId, telegramTools);
+            if (command.equalsIgnoreCase("generateImage")) {
+                if (Strings.isBlank(args)) {
+                    sendMessage(chatId, "Usage: /generateImage fileName [prompt]");
+                } else {
+                    String[] tokens = args.split("\\s+", 2);
+                    String file = tokens[0];
+                    String prompt = tokens.length > 1 ? tokens[1] : "";
+                    runAsync(
+                            chatId,
+                            "generateImage" + InstantUtils.currentTimeSeconds(),
+                            () -> falAiTools.generateImage(prompt, file)
+                    );
+                }
+                return;
+            }
         }
         if (command.equalsIgnoreCase("listTasks")) {
             sendMessage(chatId, commands.listTasks(chatId));
@@ -580,7 +645,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             "message" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
-                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+                return aiBotService.prompt(chatId, text, telegramTools);
             }
         );
     }
@@ -597,7 +662,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             "file" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
-                return aiBotService.prompt(chatId, text, telegramTools, new SystemTools());
+                return aiBotService.prompt(chatId, text, telegramTools);
             }
         );
     }
@@ -614,7 +679,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             "location" + InstantUtils.currentTimeSeconds(),
             () -> {
                 final TelegramTools telegramTools = getTelegramTools(chatId);
-                return aiBotService.prompt(chatId, locationMessage, telegramTools, new SystemTools());
+                return aiBotService.prompt(chatId, locationMessage, telegramTools);
             }
         );
     }

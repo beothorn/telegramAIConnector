@@ -40,5 +40,6 @@ For more details, check [the backoffice page](./backoffice.md)
 * [FalAi tools](./falai-tools.md)
 * [System tools](./system-tools.md)
 * [Telegram tools](./telegram-tools.md)
+* [AI analysis tool](./analysis-tool.md)
 
 

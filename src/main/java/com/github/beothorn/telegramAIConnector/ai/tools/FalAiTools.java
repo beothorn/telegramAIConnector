@@ -4,6 +4,7 @@ import ai.fal.client.FalClient;
 import ai.fal.client.Output;
 import ai.fal.client.SubscribeOptions;
 import ai.fal.client.queue.QueueStatus;
+import com.github.beothorn.telegramAIConnector.telegram.TelegramTools;
 import com.github.beothorn.telegramAIConnector.utils.TelegramAIFileUtils;
 import com.google.gson.JsonObject;
 import org.springframework.ai.tool.annotation.Tool;
@@ -22,10 +23,16 @@ public class FalAiTools {
 
     private final FalClient falClient;
     private final String uploadFolder;
+    private final TelegramTools telegramTools;
 
-    public FalAiTools(FalClient falClient, String uploadFolder) {
+    public FalAiTools(
+        final FalClient falClient,
+        final String uploadFolder,
+        final TelegramTools telegramTools
+    ) {
         this.falClient = falClient;
         this.uploadFolder = uploadFolder;
+        this.telegramTools = telegramTools;
     }
 
     private static String toDataUri(Path file) throws Exception {
@@ -43,9 +50,9 @@ public class FalAiTools {
      * @param fileName      name of the uploaded file to edit
      * @param prompt        textual description of the transformation
      * @param outputFileName resulting file name
-     * @return a user friendly message about the operation result
+     * @return a user-friendly message about the operation result
      */
-    @Tool(description = "AI to edit images with an image and a text describing the transformation as input and a transformed image as output.")
+    @Tool(description = "Tool to edit images with an image and a text describing the transformation as input and a transformed image as output.")
     public String editImage(
         @ToolParam(description = "Name of the source image located in the Telegram upload folder") String fileName,
         @ToolParam(description = "Instruction describing the desired modification") String prompt,
@@ -87,6 +94,7 @@ public class FalAiTools {
                 Files.createDirectories(parent.toPath());
                 Files.copy(in, dest.toPath());
             }
+            telegramTools.sendFile(outputFileName, outputFileName);
             return "I created a new file " + outputFileName + " on your upload folder with the change you asked.";
         } catch (Exception e) {
             return "Failed to process image: " + e.getMessage();
@@ -100,7 +108,7 @@ public class FalAiTools {
      * @param outputFileName file name to store the generated image under
      * @return operation status message
      */
-    @Tool(description = "AI to generate images from a text prompt.")
+    @Tool(description = "Tool to generate images from a text prompt.")
     public String generateImage(
         @ToolParam(description = "Instruction describing the desired image") String prompt,
         @ToolParam(description = "Name of the output image to be created") String outputFileName
@@ -113,12 +121,24 @@ public class FalAiTools {
                 return "Invalid file name.";
             }
 
+            if (TelegramAIFileUtils.isNotInParentFolder(parent, dest)) {
+                return "Invalid file name.";
+            }
+
+            String newOutputFileName = outputFileName;
+            int i = 0;
+            while (dest.exists()) {
+                newOutputFileName = i + outputFileName;
+                dest = new File(parent, newOutputFileName);
+                i++;
+            }
+
             Map<String, Object> input = Map.of(
                     "prompt", prompt,
-                    "safety_tolerance", "5" // Allow most permissive generation
+                    "enable_safety_checker", "false" // Allow most permissive generation
             );
             Output<JsonObject> result = falClient.subscribe(
-                "fal-ai/fast-sdxl",
+                "fal-ai/flux-pro/v1.1-ultra",
                 SubscribeOptions.<JsonObject>builder()
                     .input(input)
                     .logs(false)
@@ -130,65 +150,21 @@ public class FalAiTools {
                     })
                     .build()
             );
-            String url = result.getData().getAsJsonArray("images").get(0).getAsJsonObject().get("url").getAsString();
+            String url = result
+                    .getData()
+                    .getAsJsonArray("images")
+                    .get(0)
+                    .getAsJsonObject()
+                    .get("url")
+                    .getAsString();
             try (InputStream in = new URL(url).openStream()) {
                 Files.createDirectories(parent.toPath());
                 Files.copy(in, dest.toPath());
             }
+            telegramTools.sendFile(newOutputFileName, outputFileName);
             return "I created a new file " + outputFileName + " on your upload folder.";
         } catch (Exception e) {
             return "Failed to generate image: " + e.getMessage();
-        }
-    }
-
-    /**
-     * Analyses an uploaded image describing its contents and performing OCR.
-     *
-     * @param fileName the uploaded file to analyse
-     * @return the description of the image or an error message
-     */
-    @Tool(description = "Describe the content of an image and transcribe any text found on it.")
-    public String describeImage(
-        @ToolParam(description = "Name of the image located in the Telegram upload folder") String fileName
-    ) {
-        try {
-            File parent = new File(uploadFolder);
-            File source = new File(parent, fileName);
-
-            if (TelegramAIFileUtils.isNotInParentFolder(parent, source)) {
-                return "Invalid file name.";
-            }
-            if (!source.isFile()) {
-                return "File '" + fileName + "' not found.";
-            }
-
-            String dataUri = toDataUri(source.toPath());
-            Map<String, Object> input = Map.of(
-                    "image_url", dataUri,
-                    "prompt", "Describe the image and transcribe any text you find"
-            );
-            Output<JsonObject> result = falClient.subscribe(
-                "fal-ai/llava-1.5-7b",
-                SubscribeOptions.<JsonObject>builder()
-                    .input(input)
-                    .logs(false)
-                    .resultType(JsonObject.class)
-                    .onQueueUpdate(u -> {
-                        if (u instanceof QueueStatus.InProgress progress) {
-                            // ignore logs
-                        }
-                    })
-                    .build()
-            );
-            String description = result.getData().get("text").getAsString();
-
-            String ocr = ocrWithTesseract(source.toPath());
-            if (!ocr.isBlank()) {
-                description += "\nText: " + ocr;
-            }
-            return description;
-        } catch (Exception e) {
-            return "Failed to analyze image: " + e.getMessage();
         }
     }
 
@@ -204,24 +180,13 @@ public class FalAiTools {
         return mp3;
     }
 
-    private static String ocrWithTesseract(Path image) throws Exception {
-        Process process = new ProcessBuilder(
-                "tesseract", image.toString(), "-", "-l", "eng"
-        ).redirectErrorStream(true).start();
-        if (!process.waitFor(30, TimeUnit.SECONDS)) {
-            process.destroy();
-            throw new RuntimeException("tesseract timed out");
-        }
-        return new String(process.getInputStream().readAllBytes()).trim();
-    }
-
     /**
      * Transcribes the given audio file using Fal AI.
      *
      * @param fileName name of the audio file located inside the upload folder
      * @return the transcribed text or an error message
      */
-    @Tool(description = "Transcribes an audio file.")
+    @Tool(description = "Tool to transcribes an audio file.")
     public String audioToText(
         @ToolParam(description = "Name of the audio file located in the Telegram upload folder") String fileName
     ) {

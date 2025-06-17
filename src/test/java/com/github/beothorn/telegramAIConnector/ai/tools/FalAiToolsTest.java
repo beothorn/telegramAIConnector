@@ -1,6 +1,7 @@
 package com.github.beothorn.telegramAIConnector.ai.tools;
 
 import ai.fal.client.FalClient;
+import com.github.beothorn.telegramAIConnector.telegram.TelegramTools;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -15,7 +16,7 @@ public class FalAiToolsTest {
 
     @Test
     void editImageReturnsNotFoundForMissingFile() {
-        FalAiTools tools = new FalAiTools(mock(FalClient.class), folder.toString());
+        FalAiTools tools = new FalAiTools(mock(FalClient.class), folder.toString(), mock(TelegramTools.class));
         String msg = tools.editImage("missing.png","p","out.png");
         assertTrue(msg.contains("not found"));
     }
