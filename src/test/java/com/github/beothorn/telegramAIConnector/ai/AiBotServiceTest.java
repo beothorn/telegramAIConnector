@@ -1,5 +1,6 @@
 package com.github.beothorn.telegramAIConnector.ai;
 
+import com.github.beothorn.telegramAIConnector.telegram.TelegramTools;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.profile.advisors.UserProfileAdvisor;
 import org.junit.jupiter.api.Test;
@@ -44,19 +45,19 @@ public class AiBotServiceTest {
         UserProfileAdvisor advisor = mock(UserProfileAdvisor.class);
 
         AiBotService service = new AiBotService(
-                builder,
-                provider,
-                messagesRepository,
-                advisor,
-                null,
-                null,
-                "",
-                new ByteArrayResource("def".getBytes()),
-                1,
-                "upload"
+            builder,
+            provider,
+            messagesRepository,
+            advisor,
+            null,
+            null,
+            "",
+            new ByteArrayResource("def".getBytes()),
+            1,
+            "upload"
         );
 
-        String result = service.prompt(1L, "hi", null);
+        String result = service.prompt(1L, "hi", mock(TelegramTools.class));
         assertEquals("answer", result);
     }
 }
