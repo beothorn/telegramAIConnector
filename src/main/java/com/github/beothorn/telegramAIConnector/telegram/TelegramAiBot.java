@@ -494,22 +494,39 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         logger.info("Consume command from {}: {} {}", chatId, command, args);
 
         String availableCommands = """
+                    Show this message
                     /help
+                    Show the chat id (thiss is your user)
                     /chatId
+                    Shows the bot version
                     /version
+                    Show current time
                     /datetime
+                    List your files
                     /list
+                    Delete a file
                     /delete file
+                    Sends the contents of a file as message
                     /read file
+                    Rename a file
                     /rename old new
+                    Sends a file from your files
                     /download file
+                    Analyze an image and return a message with the result
                     /analyzeImage fileName [prompt]
+                    List scheduled tasks
                     /listTasks
+                    List MCPs
                     /listTools
+                    Show your profile
                     /profile
+                    Recreates your profile
                     /newProfile profile text
+                    Logs out the chat
                     /logout
+                    Change your current password
                     /changePassword newPass
+                    Show current messages being processed
                     /doing""";
         if (falClient != null) {
             availableCommands += """
