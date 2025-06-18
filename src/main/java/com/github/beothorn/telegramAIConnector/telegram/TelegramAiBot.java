@@ -501,6 +501,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     /list
                     /delete file
                     /read file
+                    /rename old new
                     /download file
                     /analyzeImage fileName [prompt]
                     /listTasks
@@ -545,6 +546,13 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             sendMessage(chatId, commands.read(chatId, args));
             return;
         }
+        if (command.equalsIgnoreCase("rename")) {
+            String[] tokens = args.split("\\s+", 2);
+            String firstArg = tokens[0];
+            String secondArg = tokens.length > 1 ? tokens[1] : firstArg;
+            sendMessage(chatId, commands.rename(chatId, firstArg, secondArg));
+            return;
+        }
         if (command.equalsIgnoreCase("download")) {
             sendMessage(chatId, commands.download(this, chatId, args));
             return;
@@ -554,12 +562,12 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                 sendMessage(chatId, "Usage: /analyzeImage fileName [prompt]");
             } else {
                 String[] tokens = args.split("\\s+", 2);
-                String file = tokens[0];
-                String prompt = tokens.length > 1 ? tokens[1] : "Describe the image.";
+                String firstArg = tokens[0];
+                String secondArg = tokens.length > 1 ? tokens[1] : "Describe the image.";
                 runAsync(
                     chatId,
                     "analyzeImage" + InstantUtils.currentTimeSeconds(),
-                    () -> aiAnalysisTool.analyzeImageForChatId(file, prompt, chatId)
+                    () -> aiAnalysisTool.analyzeImageForChatId(firstArg, secondArg, chatId)
                 );
             }
             return;
@@ -577,12 +585,12 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     sendMessage(chatId, "Usage: /generateImage fileName [prompt]");
                 } else {
                     String[] tokens = args.split("\\s+", 2);
-                    String file = tokens[0];
-                    String prompt = tokens.length > 1 ? tokens[1] : "";
+                    String firstArg = tokens[0];
+                    String secondArg = tokens.length > 1 ? tokens[1] : "";
                     runAsync(
                             chatId,
                             "generateImage" + InstantUtils.currentTimeSeconds(),
-                            () -> falAiTools.generateImage(prompt, file)
+                            () -> falAiTools.generateImage(secondArg, firstArg)
                     );
                 }
                 return;

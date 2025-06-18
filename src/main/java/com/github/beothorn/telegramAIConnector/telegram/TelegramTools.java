@@ -290,8 +290,8 @@ public class TelegramTools {
      */
     @Tool(description = "Saves string content as file inside Telegram upload folder")
     public String saveAsFile(
-            @ToolParam(description = "The file name to be used.") final String fileName,
-            @ToolParam(description = "The file contents.") final String fileContents
+        @ToolParam(description = "The file name to be used.") final String fileName,
+        @ToolParam(description = "The file contents.") final String fileContents
     ) {
         final File file = new File(uploadFolder + "/" + fileName);
         File parent = new File(uploadFolder);
@@ -316,8 +316,8 @@ public class TelegramTools {
      */
     @Tool(description = "Send string as file")
     public String sendAsFile(
-            @ToolParam(description = "The file name to be used.") final String fileName,
-            @ToolParam(description = "The file contents.") final String fileContents
+        @ToolParam(description = "The file name to be used.") final String fileName,
+        @ToolParam(description = "The file contents.") final String fileContents
     ) {
         try {
             File tempFile = File.createTempFile("telegram-temp-", "-" + fileName);

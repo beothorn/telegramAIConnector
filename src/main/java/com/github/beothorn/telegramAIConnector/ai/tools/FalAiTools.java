@@ -135,7 +135,7 @@ public class FalAiTools {
 
             Map<String, Object> input = Map.of(
                     "prompt", prompt,
-                    "enable_safety_checker", "false" // Allow most permissive generation
+                    "safety_tolerance", "5" // This is important, low values give too much false positives
             );
             Output<JsonObject> result = falClient.subscribe(
                 "fal-ai/flux-pro/v1.1-ultra",
