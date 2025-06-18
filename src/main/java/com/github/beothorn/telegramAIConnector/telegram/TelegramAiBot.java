@@ -8,6 +8,7 @@ import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
+import com.github.beothorn.telegramAIConnector.utils.CommandParser;
 import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -564,10 +565,12 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             return;
         }
         if (command.equalsIgnoreCase("rename")) {
-            String[] tokens = args.split("\\s+", 2);
-            String firstArg = tokens[0];
-            String secondArg = tokens.length > 1 ? tokens[1] : firstArg;
-            sendMessage(chatId, commands.rename(chatId, firstArg, secondArg));
+            String[] tokens = CommandParser.parseTwoArguments(args);
+            if (Strings.isBlank(tokens[1])) {
+                sendMessage(chatId, "Usage: /rename \"old name\" \"new name\"");
+            } else {
+                sendMessage(chatId, commands.rename(chatId, tokens[0], tokens[1]));
+            }
             return;
         }
         if (command.equalsIgnoreCase("download")) {
@@ -578,9 +581,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             if (Strings.isBlank(args)) {
                 sendMessage(chatId, "Usage: /analyzeImage fileName [prompt]");
             } else {
-                String[] tokens = args.split("\\s+", 2);
+                String[] tokens = CommandParser.parseTwoArguments(args);
                 String firstArg = tokens[0];
-                String secondArg = tokens.length > 1 ? tokens[1] : "Describe the image.";
+                String secondArg = Strings.isBlank(tokens[1]) ? "Describe the image." : tokens[1];
                 runAsync(
                     chatId,
                     "analyzeImage" + InstantUtils.currentTimeSeconds(),
@@ -601,9 +604,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                 if (Strings.isBlank(args)) {
                     sendMessage(chatId, "Usage: /generateImage fileName [prompt]");
                 } else {
-                    String[] tokens = args.split("\\s+", 2);
+                    String[] tokens = CommandParser.parseTwoArguments(args);
                     String firstArg = tokens[0];
-                    String secondArg = tokens.length > 1 ? tokens[1] : "";
+                    String secondArg = Strings.isBlank(tokens[1]) ? "" : tokens[1];
                     runAsync(
                             chatId,
                             "generateImage" + InstantUtils.currentTimeSeconds(),
