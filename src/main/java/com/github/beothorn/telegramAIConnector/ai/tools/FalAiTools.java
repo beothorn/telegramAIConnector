@@ -115,7 +115,8 @@ public class FalAiTools {
     ) {
         try {
             File parent = new File(uploadFolder);
-            File dest = new File(parent, outputFileName);
+            String newOutputFileName = outputFileName + ".jpg";
+            File dest = new File(parent, newOutputFileName);
 
             if (TelegramAIFileUtils.isNotInParentFolder(parent, dest)) {
                 return "Invalid file name.";
@@ -125,16 +126,16 @@ public class FalAiTools {
                 return "Invalid file name.";
             }
 
-            String newOutputFileName = outputFileName;
             int i = 0;
             while (dest.exists()) {
-                newOutputFileName = i + outputFileName;
+                newOutputFileName = i + outputFileName + ".jpg";
                 dest = new File(parent, newOutputFileName);
                 i++;
             }
 
             Map<String, Object> input = Map.of(
                     "prompt", prompt,
+                    "output_format", "jpeg",
                     "safety_tolerance", "5" // This is important, low values give too much false positives
             );
             Output<JsonObject> result = falClient.subscribe(
