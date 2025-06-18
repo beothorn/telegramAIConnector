@@ -128,7 +128,11 @@ public class AiBotService {
 
             final AIAnalysisTool aiAnalysisTool = new AIAnalysisTool(chatModel, uploadFolderForCurrentChat);
             final SystemTools systemTools = new SystemTools();
-            toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(systemTools, aiAnalysisTool)));
+            toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(
+                systemTools,
+                telegramTools,
+                aiAnalysisTool
+            )));
 
             toolCallbackList.addAll(Arrays.asList(toolCallbacks));
 

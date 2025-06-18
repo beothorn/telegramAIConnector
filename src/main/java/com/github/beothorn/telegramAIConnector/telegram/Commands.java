@@ -129,6 +129,28 @@ public class Commands {
     }
 
     /**
+     * Rename a file.
+     *
+     * @param chatId        chat identifier
+     * @param oldFileName   the file name to be renamed
+     * @param newFileName   the new filename
+     * @return the rename result message
+     */
+    public String rename(
+        final Long chatId,
+        final String oldFileName,
+        final String newFileName
+    ) {
+        final TelegramTools telegramTools = new TelegramTools(
+                null,
+                taskScheduler,
+                chatId,
+                uploadFolder
+        );
+        return telegramTools.renameFile(oldFileName, newFileName);
+    }
+
+    /**
      * Sends a file to the user.
      *
      * @param telegramAiBot bot instance to use
