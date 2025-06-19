@@ -101,6 +101,16 @@ public class FalAiTools {
         }
     }
 
+    public String removeExtension(
+        final String filename
+    ) {
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot > 0 && lastDot < filename.length() - 1) {
+            return filename.substring(0, lastDot);
+        }
+        return filename;
+    }
+
     /**
      * Generates a new image using Fal AI from the given prompt.
      *
@@ -115,7 +125,8 @@ public class FalAiTools {
     ) {
         try {
             File parent = new File(uploadFolder);
-            String newOutputFileName = outputFileName + ".jpg";
+
+            String newOutputFileName = removeExtension(outputFileName) + ".jpg";
             File dest = new File(parent, newOutputFileName);
 
             if (TelegramAIFileUtils.isNotInParentFolder(parent, dest)) {
