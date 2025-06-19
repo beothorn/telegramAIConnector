@@ -111,9 +111,7 @@ public class TelegramTools {
     ) {
         try {
             telegramAiBot.sendMarkdownMessage(chatId, message);
-            if (messagesRepository != null) {
-                messagesRepository.insertMessage(Long.toString(chatId), "assistant", message);
-            }
+            messagesRepository.insertMessage(Long.toString(chatId), "assistant", message);
         } catch (TelegramApiException e) {
             return "Could not send message, got error: '" + e.getMessage() + "'.";
         }
@@ -145,7 +143,7 @@ public class TelegramTools {
         }
         try {
             telegramAiBot.sendFileWithCaption(chatId, file.getAbsolutePath(), caption);
-            if (messagesRepository != null && caption != null && !caption.isBlank()) {
+            if (caption != null && !caption.isBlank()) {
                 messagesRepository.insertMessage(Long.toString(chatId), "assistant", caption);
             }
             return "File '" + fileName + "' sent successfully.";
@@ -334,9 +332,7 @@ public class TelegramTools {
             Files.writeString(tempFile.toPath(), fileContents);
             String caption = "Here is your file: " + fileName;
             telegramAiBot.sendFileWithCaption(chatId, tempFile.getAbsolutePath(), caption);
-            if (messagesRepository != null) {
-                messagesRepository.insertMessage(Long.toString(chatId), "assistant", caption);
-            }
+            messagesRepository.insertMessage(Long.toString(chatId), "assistant", caption);
             boolean deleted = tempFile.delete(); // cleanup
             if (!deleted) {
                 tempFile.deleteOnExit(); // ensure deletion on exit if immediate deletion fails

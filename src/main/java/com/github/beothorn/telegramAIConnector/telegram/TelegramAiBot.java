@@ -70,7 +70,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final Logger logger = LoggerFactory.getLogger(TelegramAiBot.class);
 
     private void storeAssistantMessage(Long chatId, String message) {
-        if (messagesRepository != null && message != null && !message.isBlank()) {
+        if (message != null && !message.isBlank()) {
             messagesRepository.insertMessage(chatId.toString(), "assistant", message);
         }
     }
