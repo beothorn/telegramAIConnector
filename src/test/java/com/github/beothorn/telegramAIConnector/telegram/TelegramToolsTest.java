@@ -2,6 +2,7 @@ package com.github.beothorn.telegramAIConnector.telegram;
 
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -25,7 +26,8 @@ public class TelegramToolsTest {
     void sendReminderSchedulesWhenFutureDate() {
         TaskScheduler scheduler = mock(TaskScheduler.class);
         TelegramAiBot bot = mock(TelegramAiBot.class);
-        TelegramTools tools = new TelegramTools(bot, scheduler, 1L, tempDir.toString());
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 1L, tempDir.toString(), messages);
 
         String future = InstantUtils.formatFromInstant(Instant.now().plusSeconds(60));
         String msg = tools.sendReminder("hello", future);
@@ -41,7 +43,8 @@ public class TelegramToolsTest {
     void sendReminderRefusesPastDate() {
         TaskScheduler scheduler = mock(TaskScheduler.class);
         TelegramAiBot bot = mock(TelegramAiBot.class);
-        TelegramTools tools = new TelegramTools(bot, scheduler, 1L, tempDir.toString());
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 1L, tempDir.toString(), messages);
 
         String past = InstantUtils.formatFromInstant(Instant.now().minusSeconds(60));
         String msg = tools.sendReminder("hi", past);
@@ -57,11 +60,13 @@ public class TelegramToolsTest {
     void sendMessageDelegatesToBot() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
         TelegramAiBot bot = mock(TelegramAiBot.class);
-        TelegramTools tools = new TelegramTools(bot, scheduler, 2L, tempDir.toString());
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 2L, tempDir.toString(), messages);
 
         String result = tools.sendMessage("hello");
         assertEquals("Sent message successfully", result);
         verify(bot).sendMarkdownMessage(2L, "hello");
+        verify(messages).insertMessage("2", "assistant", "hello");
     }
 
     /**
@@ -73,10 +78,12 @@ public class TelegramToolsTest {
         TelegramAiBot bot = mock(TelegramAiBot.class);
         doThrow(new TelegramApiException("boom")).when(bot).sendMarkdownMessage(anyLong(), anyString());
 
-        TelegramTools tools = new TelegramTools(bot, scheduler, 2L, tempDir.toString());
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 2L, tempDir.toString(), messages);
 
         String result = tools.sendMessage("hello");
         assertEquals("Could not send message, got error: 'boom'.", result);
+        verifyNoInteractions(messages);
     }
 
     /**
@@ -86,12 +93,13 @@ public class TelegramToolsTest {
     void sendAsFileCallsBot() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
         TelegramAiBot bot = mock(TelegramAiBot.class);
-
-        TelegramTools tools = new TelegramTools(bot, scheduler, 3L, tempDir.toString());
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 3L, tempDir.toString(), messages);
 
         String result = tools.sendAsFile("t.txt", "content");
         assertEquals("File 't.txt' sent successfully.", result);
         verify(bot).sendFileWithCaption(eq(3L), anyString(), contains("t.txt"));
+        verify(messages).insertMessage("3", "assistant", "Here is your file: t.txt");
     }
 
     /**
@@ -101,7 +109,8 @@ public class TelegramToolsTest {
     void saveAndReadFileWorks() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
         TelegramAiBot bot = mock(TelegramAiBot.class);
-        TelegramTools tools = new TelegramTools(bot, scheduler, 4L, tempDir.toString());
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 4L, tempDir.toString(), messages);
 
         String res = tools.saveAsFile("a.txt", "data");
         assertEquals("File 'a.txt' saved successfully.", res);
@@ -117,7 +126,8 @@ public class TelegramToolsTest {
     void deleteFileRemovesFile() throws Exception {
         TaskScheduler scheduler = mock(TaskScheduler.class);
         TelegramAiBot bot = mock(TelegramAiBot.class);
-        TelegramTools tools = new TelegramTools(bot, scheduler, 5L, tempDir.toString());
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 5L, tempDir.toString(), messages);
 
         Path dir = tempDir.resolve("5");
         Files.createDirectories(dir);
@@ -133,7 +143,8 @@ public class TelegramToolsTest {
     void deleteFileInvalidName() {
         TaskScheduler scheduler = mock(TaskScheduler.class);
         TelegramAiBot bot = mock(TelegramAiBot.class);
-        TelegramTools tools = new TelegramTools(bot, scheduler, 5L, tempDir.toString());
+        MessagesRepository messages2 = mock(MessagesRepository.class);
+        TelegramTools tools = new TelegramTools(bot, scheduler, 5L, tempDir.toString(), messages2);
 
         String msg = tools.deleteFile("../bad.txt");
         assertEquals("'../bad.txt' is not a valid file name.", msg);

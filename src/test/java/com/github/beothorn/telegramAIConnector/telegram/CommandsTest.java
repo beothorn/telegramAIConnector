@@ -2,6 +2,7 @@ package com.github.beothorn.telegramAIConnector.telegram;
 
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -31,6 +32,7 @@ public class CommandsTest {
                 mock(TaskScheduler.class),
                 provider,
                 mock(UserProfileRepository.class),
+                mock(MessagesRepository.class),
                 "folder");
         String result = commands.listTools();
 

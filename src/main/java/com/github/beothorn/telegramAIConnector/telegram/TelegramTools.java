@@ -3,6 +3,7 @@ package com.github.beothorn.telegramAIConnector.telegram;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import com.github.beothorn.telegramAIConnector.utils.TelegramAIFileUtils;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -19,6 +20,7 @@ public class TelegramTools {
     private final Long chatId;
     private final TaskScheduler taskScheduler;
     private final String uploadFolder;
+    private final MessagesRepository messagesRepository;
 
     /**
      * Creates a helper bound to a specific chat.
@@ -32,12 +34,14 @@ public class TelegramTools {
             final TelegramAiBot telegramAiBot,
             final TaskScheduler taskScheduler,
             final Long chatId,
-            final String uploadFolder
+            final String uploadFolder,
+            final MessagesRepository messagesRepository
     ) {
         this.telegramAiBot = telegramAiBot;
         this.taskScheduler = taskScheduler;
         this.chatId = chatId;
         this.uploadFolder = uploadFolder + "/" + chatId;
+        this.messagesRepository = messagesRepository;
     }
 
     /**
@@ -107,6 +111,9 @@ public class TelegramTools {
     ) {
         try {
             telegramAiBot.sendMarkdownMessage(chatId, message);
+            if (messagesRepository != null) {
+                messagesRepository.insertMessage(Long.toString(chatId), "assistant", message);
+            }
         } catch (TelegramApiException e) {
             return "Could not send message, got error: '" + e.getMessage() + "'.";
         }
@@ -138,6 +145,9 @@ public class TelegramTools {
         }
         try {
             telegramAiBot.sendFileWithCaption(chatId, file.getAbsolutePath(), caption);
+            if (messagesRepository != null && caption != null && !caption.isBlank()) {
+                messagesRepository.insertMessage(Long.toString(chatId), "assistant", caption);
+            }
             return "File '" + fileName + "' sent successfully.";
         } catch (TelegramApiException e) {
             return "Could not send '" + fileName + "' got error: '" + e.getMessage() + "'.";
@@ -322,7 +332,11 @@ public class TelegramTools {
         try {
             File tempFile = File.createTempFile("telegram-temp-", "-" + fileName);
             Files.writeString(tempFile.toPath(), fileContents);
-            telegramAiBot.sendFileWithCaption(chatId, tempFile.getAbsolutePath(), "Here is your file: " + fileName);
+            String caption = "Here is your file: " + fileName;
+            telegramAiBot.sendFileWithCaption(chatId, tempFile.getAbsolutePath(), caption);
+            if (messagesRepository != null) {
+                messagesRepository.insertMessage(Long.toString(chatId), "assistant", caption);
+            }
             boolean deleted = tempFile.delete(); // cleanup
             if (!deleted) {
                 tempFile.deleteOnExit(); // ensure deletion on exit if immediate deletion fails

@@ -7,6 +7,7 @@ import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
 import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import com.github.beothorn.telegramAIConnector.utils.CommandParser;
 import jakarta.annotation.PreDestroy;
@@ -61,11 +62,18 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     private final FalClient falClient;
     private final String uploadFolder;
     private final ProcessingStatus processingStatus;
+    private final MessagesRepository messagesRepository;
     private String botName = "";
     private final ExecutorService executor;
     private final ScheduledExecutorService typingScheduler;
 
     private final Logger logger = LoggerFactory.getLogger(TelegramAiBot.class);
+
+    private void storeAssistantMessage(Long chatId, String message) {
+        if (messagesRepository != null && message != null && !message.isBlank()) {
+            messagesRepository.insertMessage(chatId.toString(), "assistant", message);
+        }
+    }
 
     public TelegramAiBot(
         final AiBotService aiBotService,
@@ -73,6 +81,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final Authentication authentication,
         final UserRepository userRepository,
         final Commands commands,
+        final MessagesRepository messagesRepository,
         final ChatModel chatModel,
         final FalClient falClient,
         final ProcessingStatus processingStatus,
@@ -86,6 +95,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         this.authentication = authentication;
         this.userRepository = userRepository;
         this.commands = commands;
+        this.messagesRepository = messagesRepository;
         this.aiAnalysisTool = new AIAnalysisTool(chatModel, uploadFolder);
         this.uploadFolder = uploadFolder;
         this.processingStatus = processingStatus;
@@ -166,6 +176,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
         final SendMessage sendMessage = new SendMessage(Long.toString(chatId), response);
         try {
             telegramClient.execute(sendMessage);
+            storeAssistantMessage(chatId, response);
         } catch (TelegramApiException e) {
             if (e.getMessage().contains("message is too long")) {
                 sendMessage(chatId, "Response was too long and got rejected by telegram. I will send it as a file");
@@ -253,6 +264,7 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             .build();
 
         telegramClient.execute(sendDocument);
+        storeAssistantMessage(chatId, caption);
     }
 
     /**
@@ -597,7 +609,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
                     this,
                     taskScheduler,
                     chatId,
-                    uploadFolder
+                    uploadFolder,
+                    messagesRepository
             );
             FalAiTools falAiTools = new FalAiTools(falClient, uploadFolder + "/" + chatId, telegramTools);
             if (command.equalsIgnoreCase("generateImage")) {
@@ -771,7 +784,8 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             this,
                 taskScheduler,
             chatId,
-            uploadFolder
+            uploadFolder,
+            messagesRepository
         );
     }
 

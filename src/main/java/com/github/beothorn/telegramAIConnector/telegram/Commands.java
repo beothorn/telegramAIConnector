@@ -3,6 +3,7 @@ package com.github.beothorn.telegramAIConnector.telegram;
 import com.github.beothorn.telegramAIConnector.ai.tools.SystemTools;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
+import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.ToolCallback;
@@ -28,6 +29,7 @@ public class Commands {
     private final ToolCallbackProvider toolCallbackProvider;
     private final String uploadFolder;
     private final UserProfileRepository userProfileRepository;
+    private final MessagesRepository messagesRepository;
 
     /**
      * Constructs a helper with the provided dependencies.
@@ -41,11 +43,13 @@ public class Commands {
             final TaskScheduler taskScheduler,
             final ToolCallbackProvider toolCallbackProvider,
             final UserProfileRepository userProfileRepository,
+            final MessagesRepository messagesRepository,
             @Value("${telegramIAConnector.uploadFolder}") final String uploadFolder
     ) {
         this.taskScheduler = taskScheduler;
         this.toolCallbackProvider = toolCallbackProvider;
         this.userProfileRepository = userProfileRepository;
+        this.messagesRepository = messagesRepository;
         this.uploadFolder = uploadFolder;
         this.systemTools = new SystemTools();
     }
@@ -86,7 +90,8 @@ public class Commands {
                 null,
                 taskScheduler,
                 chatId,
-                uploadFolder
+                uploadFolder,
+                messagesRepository
         );
         return telegramTools.listUploadedFiles();
     }
@@ -106,7 +111,8 @@ public class Commands {
                 null,
                 taskScheduler,
                 chatId,
-                uploadFolder
+                uploadFolder,
+                messagesRepository
         );
         return telegramTools.deleteFile(file);
     }
@@ -123,7 +129,8 @@ public class Commands {
                 null,
                 taskScheduler,
                 chatId,
-                uploadFolder
+                uploadFolder,
+                messagesRepository
         );
         return telegramTools.readFile(file);
     }
@@ -145,7 +152,8 @@ public class Commands {
                 null,
                 taskScheduler,
                 chatId,
-                uploadFolder
+                uploadFolder,
+                messagesRepository
         );
         return telegramTools.renameFile(oldFileName, newFileName);
     }
@@ -167,7 +175,8 @@ public class Commands {
                 telegramAiBot,
                 taskScheduler,
                 chatId,
-                uploadFolder
+                uploadFolder,
+                messagesRepository
         );
         return telegramTools.sendFile(args, "");
     }
