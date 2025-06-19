@@ -362,6 +362,9 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
             final String text = update.getMessage().getText();
 
             if (text.startsWith("/")) {
+                if (!text.startsWith("/login")) {
+                    messagesRepository.insertMessage(chatId.toString(), "user", text);
+                }
                 final String[] commandWithArgs = text.split("\\s+", 2);
                 String command = commandWithArgs[0].substring(1);
                 if (commandWithArgs.length == 1) {

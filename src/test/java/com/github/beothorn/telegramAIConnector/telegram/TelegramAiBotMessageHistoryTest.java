@@ -6,12 +6,17 @@ import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.telegram.Commands;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.ai.chat.model.ChatModel;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
+import org.telegram.telegrambots.meta.api.objects.chat.Chat;
+import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -74,5 +79,47 @@ public class TelegramAiBotMessageHistoryTest {
 
         verify(client).execute(any(SendDocument.class));
         verify(messages).insertMessage("2", "assistant", "cap");
+    }
+
+    /**
+     * Commands store the command and the result in history.
+     */
+    @Test
+    void consumeCommandStoresBothMessages() throws Exception {
+        MessagesRepository messages = mock(MessagesRepository.class);
+        TelegramClient client = mock(TelegramClient.class);
+        Commands commands = mock(Commands.class);
+        when(commands.listUploadedFiles(1L)).thenReturn("files");
+        TelegramAiBot bot = new TelegramAiBot(
+                mock(AiBotService.class),
+                mock(TaskScheduler.class),
+                mock(Authentication.class),
+                mock(UserRepository.class),
+                commands,
+                messages,
+                mock(ChatModel.class),
+                mock(FalClient.class),
+                new ProcessingStatus(),
+                "token",
+                tempDir.toString()
+        );
+        Field f = TelegramAiBot.class.getDeclaredField("telegramClient");
+        f.setAccessible(true);
+        f.set(bot, client);
+
+        Update u = new Update();
+        Message m = new Message();
+        Chat chat = new Chat(1L, "private");
+        m.setChat(chat);
+        User user = new User(99L, "u", false);
+        m.setFrom(user);
+        m.setText("/list");
+        u.setMessage(m);
+
+        bot.consume(u);
+
+        verify(client).execute(any(SendMessage.class));
+        verify(messages).insertMessage("1", "user", "/list");
+        verify(messages).insertMessage("1", "assistant", "files");
     }
 }
