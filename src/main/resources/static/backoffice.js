@@ -52,6 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = await resp.text();
         document.getElementById('promptResult').textContent = text;
         form.reset();
+      } else if (form.id === 'systemMessageForm') {
+        const text = await resp.text();
+        document.getElementById('systemMessageResult').textContent = text;
+        form.reset();
       } else if (form.dataset.update === 'messages' && resp.ok) {
         await reloadMessages();
       } else if (resp.ok) {
