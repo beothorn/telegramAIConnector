@@ -55,4 +55,23 @@ public class ApiTest {
         org.mockito.Mockito.verify(bot).sendMessage(1L, "hi");
         org.mockito.Mockito.verify(bot).sendMessage(2L, "hi");
     }
+
+    /**
+     * Sends a system message to a contact.
+     */
+    @Test
+    void systemMessageDelegates() throws Exception {
+        TelegramAiBot bot = mock(TelegramAiBot.class);
+        TaskRepository tasks = mock(TaskRepository.class);
+        MessagesRepository messages = mock(MessagesRepository.class);
+        Authentication auth = mock(Authentication.class);
+        UserProfileRepository profiles = mock(UserProfileRepository.class);
+        UserRepository users = mock(UserRepository.class);
+        FileService files = mock(FileService.class);
+
+        when(bot.consumeSystemMessage(1L, "hi")).thenReturn("ok");
+        Api api = new Api(bot,tasks,messages,auth,profiles,files, users);
+        String resp = api.systemMessage(1L, "hi");
+        assertEquals("ok", resp);
+    }
 }
