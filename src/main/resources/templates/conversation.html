@@ -54,7 +54,7 @@
 </form>
 
 <h3>Send system message</h3>
-<form id="systemMessageForm" th:action="@{/api/systemMessage}" data-fetch class="wide-form">
+<form id="systemMessageForm" th:action="@{/api/systemMessage}" data-fetch data-method="POST" class="wide-form">
     <input type="hidden" name="chatId" th:value="${chatId}" />
     <textarea name="message" rows="3"></textarea>
     <button type="submit">Send</button>
