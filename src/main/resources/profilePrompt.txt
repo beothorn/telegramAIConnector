@@ -10,3 +10,5 @@ Also, if you find important information (such as name, age, profession, location
 write it on the new profile.
 For example, if the user tells their name is something different from the profile, change it.
 Your answer will be used as the new profile, answer only the profile to be saved.
+Do not record every action on the profile, only lasting information.
+For example, name should be on the profile but last message sent should not.
