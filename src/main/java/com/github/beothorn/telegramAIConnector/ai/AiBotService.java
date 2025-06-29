@@ -98,7 +98,22 @@ public class AiBotService {
     }
 
     /**
-     * Sends a prompt to the underlying chat client using the provided tools and
+     * Sends a prompt to the underlying chat client returns the AI answer.
+     * Using the base llm and tools provided, give returns a useful response.
+     *
+     * @param chatId      the conversation identifier
+     * @param message     the message from the user
+     * @return the AI response or the error message if something fails
+     */
+    public String prompt(
+            final Long chatId,
+            final String message
+    ) {
+        return prompt(chatId, message, null);
+    }
+
+    /**
+     * Sends a prompt to the underlying chat client using the provided telegram tools and
      * returns the AI answer.
      * Using the base llm and tools provided, give returns a useful response.
      *
@@ -121,16 +136,19 @@ public class AiBotService {
             List<ToolCallback> toolCallbackList = new ArrayList<>();
 
             final String uploadFolderForCurrentChat = uploadFolder + "/" + chatId;
-            if (falClient != null) {
+            if (falClient != null && telegramTools != null) {
                 FalAiTools falAiTools = new FalAiTools(falClient, uploadFolderForCurrentChat, telegramTools);
                 toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(falAiTools)));
+            }
+
+            if(telegramTools != null) {
+                toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(telegramTools)));
             }
 
             final AIAnalysisTool aiAnalysisTool = new AIAnalysisTool(chatModel, uploadFolderForCurrentChat);
             final SystemTools systemTools = new SystemTools();
             toolCallbackList.addAll(Arrays.asList(ToolCallbacks.from(
                 systemTools,
-                telegramTools,
                 aiAnalysisTool
             )));
 
