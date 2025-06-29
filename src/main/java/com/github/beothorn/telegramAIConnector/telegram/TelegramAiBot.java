@@ -268,21 +268,6 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
     }
 
     /**
-     * Processes an anonymous prompt not linked to a chat id.
-     * Chat id 0 is used.
-     *
-     * @param message prompt text
-     * @return AI response to the prompt
-     */
-    public String consumeAnonymousMessage(
-            final String message
-    ) {
-        logger.info("Consume anonymous message: {}", message);
-        final TelegramTools telegramTools = getTelegramTools(0L);
-        return aiBotService.prompt(0L, message, telegramTools);
-    }
-
-    /**
      * Sends a system message to a chat and returns the AI response.
      *
      * @param chatId  chat identifier

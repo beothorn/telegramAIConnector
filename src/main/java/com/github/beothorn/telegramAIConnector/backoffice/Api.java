@@ -96,7 +96,7 @@ public class Api {
     public String prompt(
         @RequestParam("message") final String message
     ) {
-        return telegramAiBot.consumeAnonymousMessage(message);
+        return telegramAiBot.consumeMessage(0L, message);
     }
 
     /**
