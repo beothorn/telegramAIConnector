@@ -6,10 +6,10 @@ import com.github.beothorn.telegramAIConnector.ai.tools.AIAnalysisTool;
 import com.github.beothorn.telegramAIConnector.ai.tools.FalAiTools;
 import com.github.beothorn.telegramAIConnector.auth.Authentication;
 import com.github.beothorn.telegramAIConnector.tasks.TaskScheduler;
-import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
-import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
+import com.github.beothorn.telegramAIConnector.user.UserRepository;
 import com.github.beothorn.telegramAIConnector.utils.CommandParser;
+import com.github.beothorn.telegramAIConnector.utils.InstantUtils;
 import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -303,6 +303,25 @@ public class TelegramAiBot implements LongPollingSingleThreadUpdateConsumer {
 
         logger.info("Response to " + chatId + ": " + text);
         sendMarkdownMessage(chatId, response);
+        return response;
+    }
+
+    /**
+     * Sends a message to a chat and returns the AI response.
+     *
+     * @param chatId  chat identifier
+     * @param message message text
+     * @return AI response generated for the system message
+     */
+    public String consumeMessage(
+        final Long chatId,
+        final String message
+    ) {
+        logger.info("Consume message for {}: {}", chatId, message);
+
+        final String response = aiBotService.prompt(chatId, message);
+
+        logger.info("Response to " + chatId + ": " + message);
         return response;
     }
 

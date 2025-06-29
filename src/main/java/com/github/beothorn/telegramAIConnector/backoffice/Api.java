@@ -6,8 +6,8 @@ import com.github.beothorn.telegramAIConnector.tasks.TaskRepository;
 import com.github.beothorn.telegramAIConnector.telegram.TelegramAiBot;
 import com.github.beothorn.telegramAIConnector.user.MessagesRepository;
 import com.github.beothorn.telegramAIConnector.user.StoredMessage;
-import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import com.github.beothorn.telegramAIConnector.user.UserRepository;
+import com.github.beothorn.telegramAIConnector.user.profile.UserProfileRepository;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -97,6 +97,21 @@ public class Api {
         @RequestParam("message") final String message
     ) {
         return telegramAiBot.consumeAnonymousMessage(message);
+    }
+
+    /**
+     * Sends an anonymous prompt to the bot.
+     * This will use chat id 0.
+     *
+     * @param message prompt text
+     * @return AI response
+     */
+    @PostMapping("/prompt/{chatId}")
+    public String prompt(
+        @PathVariable final Long chatId,
+        @RequestBody final String message
+    ) {
+        return telegramAiBot.consumeMessage(chatId, message);
     }
 
     /**
