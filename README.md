@@ -58,8 +58,9 @@ Posting to localhost:9996/systemMessage will send a system message prompt.
 
 ## Google maps
 
-[To take advantage of the location, add the google maps mcp](https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps)  
-[Add fetch capabilities](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch)
+[To take advantage of the location, add the google maps mcp](https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps)    
+[Add fetch capabilities](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch)  
+[Print using cups](https://github.com/beothorn/cupsMcp)
 
 # Features
 
