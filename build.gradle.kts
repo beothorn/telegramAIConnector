@@ -1,13 +1,14 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.4.4"
+    id("org.springframework.boot") version "3.5.7"
     id("io.spring.dependency-management") version "1.1.7"
     `maven-publish`
+    id("com.github.ben-manes.versions") version "0.54.0"
 }
 
 group = "com.github.beothorn"
 version = "13.0.0"
-extra["springAiVersion"] = "1.0.0-RC1"
+extra["springAiVersion"] = "1.0.3"
 
 java {
     toolchain {
@@ -34,13 +35,13 @@ dependencies {
     implementation("org.springframework.ai:spring-ai-starter-mcp-client")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    implementation("org.telegram:telegrambots-longpolling:8.0.0")
-    implementation("org.telegram:telegrambots-client:8.0.0")
-    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("org.telegram:telegrambots-longpolling:9.6.0")
+    implementation("org.telegram:telegrambots-client:9.6.0")
+    implementation("org.xerial:sqlite-jdbc:3.53.1.0")
     implementation("ai.fal.client:fal-client:0.7.1")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.awaitility:awaitility:4.2.0")
+    testImplementation("org.awaitility:awaitility:4.3.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
